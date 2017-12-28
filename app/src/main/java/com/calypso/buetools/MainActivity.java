@@ -45,12 +45,12 @@ public class MainActivity extends AppCompatActivity {
                     textView.setText(message);
                     break;
                 case 1:
+                    stringBuilder.append(message + " \n");
+                    contextView.setText(stringBuilder.toString());
                     progress += 4;
                     progressBar.setProgress(progress);
                     break;
                 case 2:
-                    stringBuilder.append(message + " \n");
-                    contextView.setText(message);
                     progress = 100;
                     progressBar.setProgress(progress);
                     break;
@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onProgressUpdate(String what, int progress) {
                         Message message = handler.obtainMessage();
                         message.what = 1;
-                        message.obj = "发送失败";
+                        message.obj = what;
                         handler.sendMessage(message);
                     }
 
