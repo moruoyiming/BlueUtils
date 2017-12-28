@@ -56,4 +56,45 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
    搜索的就是BLE蓝牙。然后在这之前需要动态注册一个BroadcastReceiver来监听 蓝牙的搜索情况，在通过onReceive中去判
    断设备的类型，是不是新设备，是不是已经链接过。搜索完成同样也会被监听到。
 
+   源码如下
+
+      public void searchDevices(OnSearchDeviceListener listener) {
+
+            checkNotNull(listener);
+            if (mBondedList == null) mBondedList = new ArrayList<>();
+            if (mNewList == null) mNewList = new ArrayList<>();
+
+            mOnSearchDeviceListener = listener;
+
+            if (mBluetoothAdapter == null) {
+                mOnSearchDeviceListener.onError(new NullPointerException(DEVICE_HAS_NOT_BLUETOOTH_MODULE));
+                return;
+            }
+
+            if (mReceiver == null) mReceiver = new Receiver();//注册receiver监听回调
+
+            // ACTION_FOUND
+            IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+            mContext.registerReceiver(mReceiver, filter);
+
+            // ACTION_DISCOVERY_FINISHED
+            filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+            mContext.registerReceiver(mReceiver, filter);
+
+            mNeed2unRegister = true;
+
+            mBondedList.clear();
+            mNewList.clear();
+
+            if (mBluetoothAdapter.isDiscovering())    //先判断是否在扫描
+                mBluetoothAdapter.cancelDiscovery();  //取消扫描
+            mBluetoothAdapter.startDiscovery();       //开始扫描蓝牙
+
+            if (mOnSearchDeviceListener != null)
+                mOnSearchDeviceListener.onStartDiscovery();
+
+        }
+
+   到这里搜索的大概流程就是走完了。接下来说下配对连接。
+
 
