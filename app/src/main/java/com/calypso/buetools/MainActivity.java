@@ -29,7 +29,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "MainActivity";
-    private BlueManager btHelperClient;
+    private BlueManager bluemanage;
     private int progress = 0;
     private TextView textView;
     private TextView contextView;
@@ -71,9 +71,9 @@ public class MainActivity extends AppCompatActivity {
         textView = (TextView) findViewById(R.id.content);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         contextView = findViewById(R.id.what);
-        btHelperClient = BlueManager.from(MainActivity.this);
+        bluemanage = BlueManager.from(MainActivity.this);
         stringBuilder = new StringBuilder();
-        btHelperClient.requestEnableBt();
+        bluemanage.requestEnableBt();
         if (Build.VERSION.SDK_INT >= 23) {
             //判断是否有权限
             if (ContextCompat.checkSelfPermission(MainActivity.this,
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
 
 
-                btHelperClient.searchDevices(new OnSearchDeviceListener() {
+                bluemanage.searchDevices(new OnSearchDeviceListener() {
                     @Override
                     public void onStartDiscovery() {
                         Log.d(TAG, "onStartDiscovery()");
@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_connect).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btHelperClient.connectDevice("00:21:13:02:9B:F1", new OnConnectListener() {
+                bluemanage.connectDevice("00:21:13:02:9B:F1", new OnConnectListener() {
                     @Override
                     public void onConnectStart() {
                         Log.i("blue", "onConnectStart");
@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                 progress = 0;
                 progressBar.setProgress(progress);
                 MessageBean item = new MessageBean(TypeConversion.startDetect());
-                btHelperClient.sendMessage(item, true, new OnSendMessageListener() {
+                bluemanage.sendMessage(item, true, new OnSendMessageListener() {
                     @Override
                     public void onSuccess(int status, String response) {
                         Message message = handler.obtainMessage();
@@ -282,6 +282,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        btHelperClient.close();
+        bluemanage.close();
     }
 }

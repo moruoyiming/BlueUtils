@@ -17,3 +17,40 @@ BLE 蓝牙不做过多讲解。具体的信息大家可以参考。
   链接不上我们的硬件设备。（应该是底层不是经典蓝牙连接导致。）后来发现了BluetoothHelper等项目。在这个项目的基础上做了一些修改及优化 ，能够满足项目需求，
   现在将这个项目做了分包及优化。然后在这分享自己的一些踩坑心得。
 
+
+
+  在页面首先初始化一个BlueManager
+
+  private BlueManager bluemanage;
+  bluemanage = BlueManager.from(MainActivity.this);
+
+  然后通过 调用 searchDevices 获取蓝牙设备，有些手机搜索开始之后 一直不走onSearchCompleted。
+  bluemanage.searchDevices(new OnSearchDeviceListener() {
+                    @Override
+                    public void onStartDiscovery() {
+                        Log.d(TAG, "onStartDiscovery()");
+                    }
+
+                    @Override
+                    public void onNewDeviceFound(BluetoothDevice device) {
+                        Log.d(TAG, "new device: " + device.getName() + " " + device.getAddress());
+                    }
+
+                    @Override
+                    public void onSearchCompleted(List<BluetoothDevice> bondedList, List<BluetoothDevice> newList) {
+                        Log.d(TAG, "SearchCompleted: bondedList" + bondedList.toString());
+                        Log.d(TAG, "SearchCompleted: newList" + newList.toString());
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+
+   底层就是通过 BlueManager里的searchDevices方法，里边其实就是获取了一个BluetoothAdapter 然后 通过调用 mBluetoothAdapter.startDiscovery();
+   来搜索经典蓝牙设备。这里如果调用 mBluetoothAdapter.startLeScan(mLeScanCallback); 搜索的就是BLE蓝牙。
+   然后在这之前需要动态注册一个BroadcastReceiver来监听 蓝牙的搜索情况，在通过onReceive 中去判断设备的类型，是不是新设备，是不是已经链接过。
+   BluetoothDevice.ACTION_FOUN
+
+
