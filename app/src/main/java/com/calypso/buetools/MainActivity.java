@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
                     progressBar.setProgress(progress);
                     break;
                 case 3:
+                    textView.setText("体检完成");
                     stringBuilder.delete(0, stringBuilder.length());
                     stringBuilder.append(message);
                     contextView.setText(stringBuilder.toString());
