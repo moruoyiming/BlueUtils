@@ -23,6 +23,7 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
   在页面首先初始化一个BlueManager
 
   private BlueManager bluemanage;
+
   bluemanage = BlueManager.from(MainActivity.this);
 
   然后通过 调用 searchDevices 获取蓝牙设备，有些手机搜索开始之后 一直不走onSearchCompleted。
