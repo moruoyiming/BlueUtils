@@ -49,11 +49,13 @@ public class MainActivity extends AppCompatActivity {
                     progressBar.setProgress(progress);
                     break;
                 case 2:
-                    textView.setText(message);
+                    stringBuilder.append(message + " \n");
+                    contextView.setText(message);
                     progress = 100;
                     progressBar.setProgress(progress);
                     break;
                 case 3:
+                    stringBuilder.delete(0, stringBuilder.length());
                     stringBuilder.append(message);
                     contextView.setText(stringBuilder.toString());
                     break;

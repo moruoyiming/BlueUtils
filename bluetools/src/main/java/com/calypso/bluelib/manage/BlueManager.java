@@ -295,12 +295,11 @@ public class BlueManager {
                                 mListener.onDetectDataFinish();
                                 mListener.onNewLine(builder.toString().trim());
                             }
+                        }else {
+                            if (mListener != null) {
+                                mListener.onDetectDataUpdate(detect);
+                            }
                         }
-//                        else {
-//                            if (mListener != null) {
-//                                mListener.onDetectDataUpdate(detect);
-//                            }
-//                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
