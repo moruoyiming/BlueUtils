@@ -15,7 +15,7 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
   设备，然后连接上蓝牙，通过手机端的指令消息来获取串口信息，在通过蓝牙返回数据到手机端。在这之前看了一些开源的项目，
   包括BluetoothKit，FastBle，BluetoothHelper等其中BluetoothKit和FastBle只支持BLE 模式蓝牙，因为硬件的模式是
   经典模式，后来自己在两个项目的基础上做了一些修改，然后可以搜索到经典蓝牙。但是怎么也是连接不上我们的硬件设备。（应
-  该是底层不是经典蓝牙连接导致。）后来发现了BluetoothHelper等项目。在这个项目的基础上做了一些修改及优化 ，能够满足
+  该是底层不是经典蓝牙连接导致。）后来发现了BluetoothHelper项目。在这个项目的基础上做了一些修改及优化 ，能够满足
   项目需求，现在将这个项目做了分包及优化。然后在这分享自己的一些踩坑心得。
 
 
