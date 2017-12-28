@@ -97,4 +97,80 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
 
    到这里搜索的大概流程就是走完了。接下来说下配对连接。
 
+      bluemanage.connectDevice("00:21:13:02:9B:F1", new OnConnectListener() {
+                         @Override
+                         public void onConnectStart() {
+                             Log.i("blue", "onConnectStart");
+                         }
+
+                         @Override
+                         public void onConnectting() {
+                             Log.i("blue", "onConnectting");
+                         }
+
+                         @Override
+                         public void onConnectFailed() {
+                             Log.i("blue", "onConnectFailed");
+                         }
+
+                         @Override
+                         public void onConectSuccess() {
+                             Log.i("blue", "onConectSuccess");
+                         }
+
+                         @Override
+                         public void onError(Exception e) {
+                             Log.i("blue", "onError");
+                         }
+                     });
+
+    底层就是开启一个线程去连接远程蓝牙
+
+
+        public void connectDevice(String mac, OnConnectListener listener) {
+            if (mCurrStatus != STATUS.CONNECTED) {
+                if (mac == null || TextUtils.isEmpty(mac))
+                    throw new IllegalArgumentException("mac address is null or empty!");
+                if (!BluetoothAdapter.checkBluetoothAddress(mac))
+                    throw new IllegalArgumentException("mac address is not correct! make sure it's upper case!");
+                ConnectDeviceRunnable connectDeviceRunnable = new ConnectDeviceRunnable(mac, listener);
+                checkNotNull(mExecutorService);
+                mExecutorService.submit(connectDeviceRunnable);
+            } else {
+                Log.i("blue", "the blue is connected !");
+            }
+        }
+
+   线程run方法，通过掉用mBluetoothAdapter。getRemoteDevice 获取远程蓝牙信息，通过createInsecureRfcommSocketToServiceRecord
+   获得一个与远程蓝牙的socket连接。通过这个进行连接及数据的读写。
+
+         BluetoothDevice remoteDevice = mBluetoothAdapter.getRemoteDevice(mac);
+                   mBluetoothAdapter.cancelDiscovery();
+                   mCurrStatus = STATUS.FREE;
+                   try {
+                       Log.d(TAG, "prepare to connect: " + remoteDevice.getAddress() + " " + remoteDevice.getName());
+                       mSocket = remoteDevice.createInsecureRfcommSocketToServiceRecord(UUID.fromString(Constants.STR_UUID));
+                       listener.onConnectting();
+                       mSocket.connect();
+                       mInputStream = mSocket.getInputStream();
+                       mOutputStream = mSocket.getOutputStream();
+                       mCurrStatus = STATUS.CONNECTED;
+                       if (listener != null) {
+                           listener.onConectSuccess();
+                       }
+                   } catch (Exception e) {
+                       e.printStackTrace();
+                       if (listener != null)
+                           listener.onConnectFailed();
+                       try {
+                           mInputStream.close();
+                           mOutputStream.close();
+                       } catch (IOException closeException) {
+                           closeException.printStackTrace();
+                       }
+                       mCurrStatus = STATUS.FREE;
+                   }
+
+
+
 
