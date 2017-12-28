@@ -294,7 +294,6 @@ public class BlueManager {
                             if (mListener != null) {
                                 mListener.onDetectDataFinish();
                                 mListener.onNewLine(builder.toString().trim());
-                                mCurrStatus = STATUS.FREE;
                             }
                         }
 //                        else {
