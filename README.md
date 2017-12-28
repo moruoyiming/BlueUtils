@@ -25,7 +25,8 @@ BLE 蓝牙不做过多讲解。具体的信息大家可以参考。
   bluemanage = BlueManager.from(MainActivity.this);
 
   然后通过 调用 searchDevices 获取蓝牙设备，有些手机搜索开始之后 一直不走onSearchCompleted。
-  bluemanage.searchDevices(new OnSearchDeviceListener() {
+
+    bluemanage.searchDevices(new OnSearchDeviceListener() {
                     @Override
                     public void onStartDiscovery() {
                         Log.d(TAG, "onStartDiscovery()");
@@ -48,9 +49,8 @@ BLE 蓝牙不做过多讲解。具体的信息大家可以参考。
                     }
                 });
 
-   底层就是通过 BlueManager里的searchDevices方法，里边其实就是获取了一个BluetoothAdapter 然后 通过调用 mBluetoothAdapter.startDiscovery();
-   来搜索经典蓝牙设备。这里如果调用 mBluetoothAdapter.startLeScan(mLeScanCallback); 搜索的就是BLE蓝牙。
-   然后在这之前需要动态注册一个BroadcastReceiver来监听 蓝牙的搜索情况，在通过onReceive 中去判断设备的类型，是不是新设备，是不是已经链接过。
-   BluetoothDevice.ACTION_FOUN
+   通过 BlueManager里的searchDevices方法，里边其实就是获取了一个BluetoothAdapter 然后 通过调用 mBluetoothAdapter.startDiscovery();来搜索经典蓝牙设备。
+   这里如果调用 mBluetoothAdapter.startLeScan(mLeScanCallback); 搜索的就是BLE蓝牙。然后在这之前需要动态注册一个BroadcastReceiver来监听 蓝牙的搜索情况，
+   在通过onReceive 中去判断设备的类型，是不是新设备，是不是已经链接过。搜索完成同样也会被监听到。
 
 
