@@ -228,7 +228,8 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
                   }
               }
 
-    到这里写信息及读信息大概就是这样。 下边是BlueManager提供的一些方法：
+
+    下边是BlueManager提供的一些方法：
 
      requestEnableBt()    开启蓝牙
 
@@ -241,3 +242,11 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
      sendMessage()        发送消息
 
      close()              关闭销毁蓝牙
+
+     BlueManager大概的使用流程及大致原理就说到这里，口才不是很好，平常也不怎么写博客，有什么问题大家
+     探讨一下。项目代码部分参考BluetoothHelper 项目，如有雷同，不属巧合，我就是抄的你的。哈哈哈哈~~
+
+     #Contact Me
+     QQ: 798774875
+     Email: moruoyiming123@gmail.com
+     GitHub: https://github.com/moruoyiming
