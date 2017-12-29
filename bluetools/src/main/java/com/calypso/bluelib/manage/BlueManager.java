@@ -38,14 +38,25 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class BlueManager {
     private static final String DEVICE_HAS_NOT_BLUETOOTH_MODULE = "device has not bluetooth module!";
     private static final String TAG = BlueManager.class.getSimpleName();
+    private Queue<MessageBean> mMessageBeanQueue = new LinkedBlockingQueue<>();
+    private ExecutorService mExecutorService = Executors.newCachedThreadPool();
+    private List<BluetoothDevice> mBondedList = new ArrayList<>();
+    private List<BluetoothDevice> mNewList = new ArrayList<>();
+    private OnSearchDeviceListener mOnSearchDeviceListener;
+    private volatile Receiver mReceiver = new Receiver();
+    private volatile STATUS mCurrStatus = STATUS.FREE;
+    private BluetoothAdapter mBluetoothAdapter;
+    private static volatile BlueManager blueManager;
+    private BluetoothSocket mSocket;
+    private OutputStream mOutputStream;
+    private InputStream mInputStream;
+    private Context mContext;
     private static int DEFAULT_BUFFER_SIZE = 10;
     private volatile boolean mWritable = true;
     private volatile boolean mReadable = true;
+    private boolean mNeed2unRegister;
     private boolean what = true;
     private int number = 0;
-    private Context mContext;
-    private BluetoothSocket mSocket;
-
 
     private enum STATUS {
         DISCOVERING,
@@ -53,32 +64,20 @@ public class BlueManager {
         FREE
     }
 
-    private volatile STATUS mCurrStatus = STATUS.FREE;
-    private BluetoothAdapter mBluetoothAdapter;
-    private volatile Receiver mReceiver = new Receiver();
-    private List<BluetoothDevice> mBondedList = new ArrayList<>();
-    private List<BluetoothDevice> mNewList = new ArrayList<>();
-    private OnSearchDeviceListener mOnSearchDeviceListener;
-    private static volatile BlueManager sBtHelperClient;
-    private boolean mNeed2unRegister;
-    private ExecutorService mExecutorService = Executors.newCachedThreadPool();
-    private InputStream mInputStream;
-    private OutputStream mOutputStream;
-
     /**
-     * Obtains the BtHelperClient from the given context.
+     * Obtains the BtHelperClient getInstance the given context.
      *
      * @param context context
      * @return an instance of BtHelperClient
      */
-    public static BlueManager from(Context context) {
-        if (sBtHelperClient == null) {
+    public static BlueManager getInstance(Context context) {
+        if (blueManager == null) {
             synchronized (BlueManager.class) {
-                if (sBtHelperClient == null)
-                    sBtHelperClient = new BlueManager(context);
+                if (blueManager == null)
+                    blueManager = new BlueManager(context);
             }
         }
-        return sBtHelperClient;
+        return blueManager;
     }
 
     /**
@@ -152,7 +151,6 @@ public class BlueManager {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if (mOnSearchDeviceListener != null)
@@ -162,7 +160,6 @@ public class BlueManager {
                 } else if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
                     mBondedList.add(device);
                 }
-
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 if (mOnSearchDeviceListener != null)
                     mOnSearchDeviceListener.onSearchCompleted(mBondedList, mNewList);
@@ -170,18 +167,16 @@ public class BlueManager {
         }
     }
 
-    private Queue<MessageBean> mMessageBeanQueue = new LinkedBlockingQueue<>();
-
 
     /**
      * Send a message to a remote device.
      * If the local device did't connected to the remote devices, it will call connectDevice(), then send the message.
-     * You can obtain a response from the remote device, just as http.
-     * However, it will blocked if didn't get response from the remote device.
+     * You can obtain a response getInstance the remote device, just as http.
+     * However, it will blocked if didn't get response getInstance the remote device.
      *
      * @param item         the message need to send
      * @param listener     lister for the sending process
-     * @param needResponse if need to obtain a response from the remote device
+     * @param needResponse if need to obtain a response getInstance the remote device
      */
     public void sendMessage(MessageBean item, boolean needResponse, OnSendMessageListener listener, OnReceiveMessageListener onReceiveMessageListener) {
         if (mCurrStatus == STATUS.CONNECTED) {
@@ -251,6 +246,10 @@ public class BlueManager {
         }
     }
 
+    public void pauseBlue(boolean pauseread, boolean pausewriter) {
+
+    }
+
 
     private class ReadRunnable_ implements Runnable {
 
@@ -295,7 +294,7 @@ public class BlueManager {
                                 mListener.onDetectDataFinish();
                                 mListener.onNewLine(builder.toString().trim());
                             }
-                        }else {
+                        } else {
                             if (mListener != null) {
                                 mListener.onDetectDataUpdate(detect);
                             }
@@ -380,32 +379,33 @@ public class BlueManager {
      * with the stream.
      */
     public void close() {
-        if (mBluetoothAdapter != null)
+        if (mBluetoothAdapter != null) {
             mBluetoothAdapter.cancelDiscovery();
-
-        // unregister
+            mBluetoothAdapter = null;
+        }
         if (mNeed2unRegister) {
             mContext.unregisterReceiver(mReceiver);
+            mReceiver = null;
             mNeed2unRegister = !mNeed2unRegister;
         }
-
         mWritable = false;
         mReadable = false;
-
-        if (mSocket != null) try {
-            mSocket.close();
-        } catch (IOException e) {
-            mSocket = null;
+        if (mSocket != null) {
+            try {
+                mSocket.close();
+                mSocket = null;
+            } catch (IOException e) {
+                mSocket = null;
+            }
         }
-
-//        mOnSearchDeviceListener = null;
-
+        if (mExecutorService != null) {
+            mExecutorService.shutdown();
+            mExecutorService = null;
+        }
         mNewList = null;
         mBondedList = null;
-
         mReceiver = null;
-
-        sBtHelperClient = null;
+        blueManager = null;
         mCurrStatus = STATUS.FREE;
     }
 }

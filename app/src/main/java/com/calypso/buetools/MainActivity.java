@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         textView = (TextView) findViewById(R.id.content);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         contextView = findViewById(R.id.what);
-        bluemanage = BlueManager.from(MainActivity.this);
+        bluemanage = BlueManager.getInstance(MainActivity.this);
         stringBuilder = new StringBuilder();
         bluemanage.requestEnableBt();
         if (Build.VERSION.SDK_INT >= 23) {
