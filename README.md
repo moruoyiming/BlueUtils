@@ -56,7 +56,7 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
    搜索的就是BLE蓝牙。然后在这之前需要动态注册一个BroadcastReceiver来监听 蓝牙的搜索情况，在通过onReceive中去判
    断设备的类型，是不是新设备，是不是已经链接过。搜索完成同样也会被监听到。
 
-   源码如下
+   搜索代码如下
 
       public void searchDevices(OnSearchDeviceListener listener) {
 
@@ -124,7 +124,7 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
                          }
                      });
 
-    底层就是开启一个线程去连接远程蓝牙
+    就是开启一个线程去连接远程蓝牙
 
 
         public void connectDevice(String mac, OnConnectListener listener) {
@@ -141,7 +141,7 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
             }
         }
 
-   线程run方法，通过掉用mBluetoothAdapter。getRemoteDevice 获取远程蓝牙信息，通过createInsecureRfcommSocketToServiceRecord
+   在连接的线程run方法中，通过调用mBluetoothAdapter。getRemoteDevice 获取远程蓝牙信息，通过createInsecureRfcommSocketToServiceRecord
    获得一个与远程蓝牙的socket连接。通过这个进行连接及数据的读写。
 
          BluetoothDevice remoteDevice = mBluetoothAdapter.getRemoteDevice(mac);
