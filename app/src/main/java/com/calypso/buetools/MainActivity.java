@@ -177,8 +177,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_send2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MessageBean item = new MessageBean(TypeConversion.startDetect());
-                bluemanage.sendMessage(item);
+
             }
         });
         findViewById(R.id.btn_send).setOnClickListener(new View.OnClickListener() {

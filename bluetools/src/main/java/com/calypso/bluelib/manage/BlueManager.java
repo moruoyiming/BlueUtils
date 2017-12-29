@@ -371,9 +371,9 @@ public class BlueManager {
                         }
                         if (number == 5) {
                             if (mListener != null) {
-                                builder.delete(0, builder.length());
                                 mListener.onDetectDataFinish();
                                 mListener.onNewLine(builder.toString().trim());
+                                builder.delete(0, builder.length());
                             }
                         } else {
                             if (mListener != null) {

@@ -38,7 +38,7 @@
             android:id="@+id/btn_send2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="发送指令2" />
+            android:text="断开设备" />
     </LinearLayout>
 
     <TextView
