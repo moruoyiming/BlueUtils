@@ -146,7 +146,9 @@ public class BlueManager {
 
     }
 
-
+    /**
+     * 搜索蓝牙广播
+     */
     private class Receiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -197,60 +199,119 @@ public class BlueManager {
 
     }
 
-    private class WriteRunnable implements Runnable {
+    /**
+     * 连接bluetooth
+     *
+     * @param mac
+     * @param listener
+     */
+    public void connectDevice(String mac, OnConnectListener listener) {
+        if (mCurrStatus != STATUS.CONNECTED) {
+            if (mac == null || TextUtils.isEmpty(mac))
+                throw new IllegalArgumentException("mac address is null or empty!");
+            if (!BluetoothAdapter.checkBluetoothAddress(mac))
+                throw new IllegalArgumentException("mac address is not correct! make sure it's upper case!");
+            ConnectDeviceRunnable connectDeviceRunnable = new ConnectDeviceRunnable(mac, listener);
+            checkNotNull(mExecutorService);
+            mExecutorService.submit(connectDeviceRunnable);
+        } else {
+            Log.i("blue", "the blue is connected !");
+        }
+    }
 
-        private OnSendMessageListener listener;
+    /**
+     * 暂停 读写线程
+     *
+     * @param pauseread
+     * @param pausewriter
+     */
+    public void pauseBlue(boolean pauseread, boolean pausewriter) {
+        this.mWritable = pausewriter;
+        this.mReadable = pauseread;
+    }
 
-        public WriteRunnable(OnSendMessageListener listener) {
+    /**
+     * Closes the connection and releases any system resources associated
+     * with the stream.
+     */
+    public void close() {
+        if (mBluetoothAdapter != null) {
+            mBluetoothAdapter.cancelDiscovery();
+            mBluetoothAdapter = null;
+        }
+        if (mNeed2unRegister) {
+            mContext.unregisterReceiver(mReceiver);
+            mReceiver = null;
+            mNeed2unRegister = !mNeed2unRegister;
+        }
+        mWritable = false;
+        mReadable = false;
+        if (mSocket != null) {
+            try {
+                mSocket.close();
+                mSocket = null;
+            } catch (IOException e) {
+                mSocket = null;
+            }
+        }
+        if (mExecutorService != null) {
+            mExecutorService.shutdown();
+            mExecutorService = null;
+        }
+        mNewList = null;
+        mBondedList = null;
+        mReceiver = null;
+        blueManager = null;
+        mCurrStatus = STATUS.FREE;
+    }
+
+    /**
+     * 连接bluetooth线程
+     */
+    private class ConnectDeviceRunnable implements Runnable {
+        private String mac;
+        private OnConnectListener listener;
+
+        public ConnectDeviceRunnable(String mac, OnConnectListener listener) {
+            this.mac = mac;
             this.listener = listener;
+            this.listener.onConnectStart();
         }
 
         @Override
         public void run() {
-            mWritable = true;
-            while (mCurrStatus != STATUS.CONNECTED && mWritable) ;
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(mOutputStream));
-            while (mWritable) {
-                MessageBean item = mMessageBeanQueue.poll();
-                if (item.mTYPE == MessageBean.TYPE.STRING) {
-                    try {
-                        writer.write(item.text);
-                        writer.newLine();
-                        writer.flush();
-                        Log.d(TAG, "send string message: " + item.text);
-                        if (listener != null) {
-                            listener.onSuccess(Constants.STATUS_OK, "send string message is success callback !");
-                        }
-                    } catch (IOException e) {
-                        if (listener != null)
-                            listener.onConnectionLost(e);
-                        mCurrStatus = STATUS.FREE;
-                        break;
-                    }
-                } else if (item.mTYPE == MessageBean.TYPE.CHAR) {
-                    try {
-                        writer.write(item.data);
-                        writer.flush();
-                        Log.d(TAG, "send char message: " + item.data);
-                        if (listener != null) {
-                            listener.onSuccess(Constants.STATUS_OK, "send char message is success callback !");
-                        }
-                    } catch (IOException e) {
-                        if (listener != null)
-                            listener.onConnectionLost(e);
-                        mCurrStatus = STATUS.FREE;
-                        break;
-                    }
+            BluetoothDevice remoteDevice = mBluetoothAdapter.getRemoteDevice(mac);
+            mBluetoothAdapter.cancelDiscovery();
+            mCurrStatus = STATUS.FREE;
+            try {
+                Log.d(TAG, "prepare to connect: " + remoteDevice.getAddress() + " " + remoteDevice.getName());
+                mSocket = remoteDevice.createInsecureRfcommSocketToServiceRecord(UUID.fromString(Constants.STR_UUID));
+                listener.onConnectting();
+                mSocket.connect();
+                mInputStream = mSocket.getInputStream();
+                mOutputStream = mSocket.getOutputStream();
+                mCurrStatus = STATUS.CONNECTED;
+                if (listener != null) {
+                    listener.onConectSuccess();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (listener != null)
+                    listener.onConnectFailed();
+                try {
+                    mInputStream.close();
+                    mOutputStream.close();
+                } catch (IOException closeException) {
+                    closeException.printStackTrace();
+                }
+                mCurrStatus = STATUS.FREE;
             }
         }
     }
 
-    public void pauseBlue(boolean pauseread, boolean pausewriter) {
-
-    }
-
-
+    /**
+     * 读取bluetooth流线程
+     */
     private class ReadRunnable_ implements Runnable {
 
         private OnReceiveMessageListener mListener;
@@ -312,100 +373,67 @@ public class BlueManager {
         }
     }
 
+    /**
+     * 输入bluetooth流线程
+     */
+    private class WriteRunnable implements Runnable {
 
-    public void connectDevice(String mac, OnConnectListener listener) {
-        if (mCurrStatus != STATUS.CONNECTED) {
-            if (mac == null || TextUtils.isEmpty(mac))
-                throw new IllegalArgumentException("mac address is null or empty!");
-            if (!BluetoothAdapter.checkBluetoothAddress(mac))
-                throw new IllegalArgumentException("mac address is not correct! make sure it's upper case!");
-            ConnectDeviceRunnable connectDeviceRunnable = new ConnectDeviceRunnable(mac, listener);
-            checkNotNull(mExecutorService);
-            mExecutorService.submit(connectDeviceRunnable);
-        } else {
-            Log.i("blue", "the blue is connected !");
-        }
-    }
+        private OnSendMessageListener listener;
 
-
-    private class ConnectDeviceRunnable implements Runnable {
-        private String mac;
-        private OnConnectListener listener;
-
-        public ConnectDeviceRunnable(String mac, OnConnectListener listener) {
-            this.mac = mac;
+        public WriteRunnable(OnSendMessageListener listener) {
             this.listener = listener;
-            this.listener.onConnectStart();
         }
 
         @Override
         public void run() {
-            BluetoothDevice remoteDevice = mBluetoothAdapter.getRemoteDevice(mac);
-            mBluetoothAdapter.cancelDiscovery();
-            mCurrStatus = STATUS.FREE;
-            try {
-                Log.d(TAG, "prepare to connect: " + remoteDevice.getAddress() + " " + remoteDevice.getName());
-                mSocket = remoteDevice.createInsecureRfcommSocketToServiceRecord(UUID.fromString(Constants.STR_UUID));
-                listener.onConnectting();
-                mSocket.connect();
-                mInputStream = mSocket.getInputStream();
-                mOutputStream = mSocket.getOutputStream();
-                mCurrStatus = STATUS.CONNECTED;
-                if (listener != null) {
-                    listener.onConectSuccess();
+            mWritable = true;
+            while (mCurrStatus != STATUS.CONNECTED && mWritable) ;
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(mOutputStream));
+            while (mWritable) {
+                MessageBean item = mMessageBeanQueue.poll();
+                if (item.mTYPE == MessageBean.TYPE.STRING) {
+                    try {
+                        writer.write(item.text);
+                        writer.newLine();
+                        writer.flush();
+                        Log.d(TAG, "send string message: " + item.text);
+                        if (listener != null) {
+                            listener.onSuccess(Constants.STATUS_OK, "send string message is success callback !");
+                        }
+                    } catch (IOException e) {
+                        if (listener != null)
+                            listener.onConnectionLost(e);
+                        mCurrStatus = STATUS.FREE;
+                        break;
+                    }
+                } else if (item.mTYPE == MessageBean.TYPE.CHAR) {
+                    try {
+                        writer.write(item.data);
+                        writer.flush();
+                        Log.d(TAG, "send char message: " + item.data);
+                        if (listener != null) {
+                            listener.onSuccess(Constants.STATUS_OK, "send char message is success callback !");
+                        }
+                    } catch (IOException e) {
+                        if (listener != null)
+                            listener.onConnectionLost(e);
+                        mCurrStatus = STATUS.FREE;
+                        break;
+                    }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (listener != null)
-                    listener.onConnectFailed();
-                try {
-                    mInputStream.close();
-                    mOutputStream.close();
-                } catch (IOException closeException) {
-                    closeException.printStackTrace();
-                }
-                mCurrStatus = STATUS.FREE;
             }
         }
     }
 
+    /**
+     * 校验
+     *
+     * @param o
+     */
     private void checkNotNull(Object o) {
         if (o == null)
             throw new NullPointerException();
     }
 
-    /**
-     * Closes the connection and releases any system resources associated
-     * with the stream.
-     */
-    public void close() {
-        if (mBluetoothAdapter != null) {
-            mBluetoothAdapter.cancelDiscovery();
-            mBluetoothAdapter = null;
-        }
-        if (mNeed2unRegister) {
-            mContext.unregisterReceiver(mReceiver);
-            mReceiver = null;
-            mNeed2unRegister = !mNeed2unRegister;
-        }
-        mWritable = false;
-        mReadable = false;
-        if (mSocket != null) {
-            try {
-                mSocket.close();
-                mSocket = null;
-            } catch (IOException e) {
-                mSocket = null;
-            }
-        }
-        if (mExecutorService != null) {
-            mExecutorService.shutdown();
-            mExecutorService = null;
-        }
-        mNewList = null;
-        mBondedList = null;
-        mReceiver = null;
-        blueManager = null;
-        mCurrStatus = STATUS.FREE;
-    }
+
 }
