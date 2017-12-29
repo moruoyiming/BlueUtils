@@ -181,20 +181,26 @@ public class BlueManager {
      * @param needResponse if need to obtain a response getInstance the remote device
      */
     public void sendMessage(MessageBean item, boolean needResponse, OnSendMessageListener listener, OnReceiveMessageListener onReceiveMessageListener) {
-        if (mCurrStatus == STATUS.CONNECTED) {
-            if (mBluetoothAdapter == null) {
-                listener.onError(new RuntimeException(DEVICE_HAS_NOT_BLUETOOTH_MODULE));
-                return;
+        try {
+            if (mCurrStatus == STATUS.CONNECTED) {
+                if (mBluetoothAdapter == null) {
+                    listener.onError(new RuntimeException(DEVICE_HAS_NOT_BLUETOOTH_MODULE));
+                    return;
+                }
+                mMessageBeanQueue.add(item);
+                WriteRunnable writeRunnable = new WriteRunnable(listener);
+                mExecutorService.submit(writeRunnable);
+                number=0;
+                what=true;
+                if (needResponse) {
+                    ReadRunnable_ readRunnable = new ReadRunnable_(onReceiveMessageListener);
+                    mExecutorService.submit(readRunnable);
+                }
+            } else {
+                Log.i("blue", "the blue is not connected !");
             }
-            mMessageBeanQueue.add(item);
-            WriteRunnable writeRunnable = new WriteRunnable(listener);
-            mExecutorService.submit(writeRunnable);
-            if (needResponse) {
-                ReadRunnable_ readRunnable = new ReadRunnable_(onReceiveMessageListener);
-                mExecutorService.submit(readRunnable);
-            }
-        } else {
-            Log.i("blue", "the blue is not connected !");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
