@@ -141,7 +141,7 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
             }
         }
 
-   在连接的线程run方法中，通过调用mBluetoothAdapter。getRemoteDevice 获取远程蓝牙信息，通过createInsecureRfcommSocketToServiceRecord
+   在连接的线程run方法中，通过调用mBluetoothAdapter.getRemoteDevice 获取远程蓝牙信息，通过createInsecureRfcommSocketToServiceRecord
    获得一个与远程蓝牙的socket连接。通过这个进行连接及数据的读写。
 
          BluetoothDevice remoteDevice = mBluetoothAdapter.getRemoteDevice(mac);
