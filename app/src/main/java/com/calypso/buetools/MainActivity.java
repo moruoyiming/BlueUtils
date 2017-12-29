@@ -174,12 +174,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        findViewById(R.id.btn_send2).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MessageBean item = new MessageBean(TypeConversion.startDetect());
+                bluemanage.sendMessage(item);
+            }
+        });
         findViewById(R.id.btn_send).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 progress = 0;
                 progressBar.setProgress(progress);
+                stringBuilder.delete(0, stringBuilder.length());
+                contextView.setText("");
                 MessageBean item = new MessageBean(TypeConversion.startDetect());
                 bluemanage.sendMessage(item, true, new OnSendMessageListener() {
                     @Override

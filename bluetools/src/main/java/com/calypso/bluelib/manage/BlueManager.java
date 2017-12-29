@@ -50,6 +50,7 @@ public class BlueManager {
     private BluetoothSocket mSocket;
     private OutputStream mOutputStream;
     private InputStream mInputStream;
+    ReadRunnable_ readRunnable;
     private Context mContext;
     private static int DEFAULT_BUFFER_SIZE = 10;
     private volatile boolean mWritable = true;
@@ -190,11 +191,15 @@ public class BlueManager {
                 mMessageBeanQueue.add(item);
                 WriteRunnable writeRunnable = new WriteRunnable(listener);
                 mExecutorService.submit(writeRunnable);
-                number=0;
-                what=true;
+                number = 0;
+                what = true;
                 if (needResponse) {
-                    ReadRunnable_ readRunnable = new ReadRunnable_(onReceiveMessageListener);
-                    mExecutorService.submit(readRunnable);
+                    if (readRunnable == null) {
+                        readRunnable = new ReadRunnable_(onReceiveMessageListener);
+                        mExecutorService.submit(readRunnable);
+                    } else {
+                        Log.i("blue", "readRunnable is not null !");
+                    }
                 }
             } else {
                 Log.i("blue", "the blue is not connected !");
@@ -203,6 +208,14 @@ public class BlueManager {
             e.printStackTrace();
         }
 
+    }
+
+    public void sendMessage(MessageBean item) {
+        mMessageBeanQueue.add(item);
+        WriteRunnable writeRunnable = new WriteRunnable(null);
+        mExecutorService.submit(writeRunnable);
+        number = 0;
+        what = true;
     }
 
     /**
@@ -358,6 +371,7 @@ public class BlueManager {
                         }
                         if (number == 5) {
                             if (mListener != null) {
+                                builder.delete(0, builder.length());
                                 mListener.onDetectDataFinish();
                                 mListener.onNewLine(builder.toString().trim());
                             }
