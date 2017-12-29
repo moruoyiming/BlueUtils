@@ -50,7 +50,7 @@ public class BlueManager {
     private BluetoothSocket mSocket;
     private OutputStream mOutputStream;
     private InputStream mInputStream;
-    ReadRunnable_ readRunnable;
+    private ReadRunnable_ readRunnable;
     private Context mContext;
     private static int DEFAULT_BUFFER_SIZE = 10;
     private volatile boolean mWritable = true;
@@ -111,39 +111,41 @@ public class BlueManager {
      * @param listener listener for the process
      */
     public void searchDevices(OnSearchDeviceListener listener) {
+        if (mCurrStatus == STATUS.FREE) {
+            mCurrStatus = STATUS.DISCOVERING;
+            checkNotNull(listener);
+            if (mBondedList == null) mBondedList = new ArrayList<>();
+            if (mNewList == null) mNewList = new ArrayList<>();
 
-        checkNotNull(listener);
-        if (mBondedList == null) mBondedList = new ArrayList<>();
-        if (mNewList == null) mNewList = new ArrayList<>();
+            mOnSearchDeviceListener = listener;
 
-        mOnSearchDeviceListener = listener;
+            if (mBluetoothAdapter == null) {
+                mOnSearchDeviceListener.onError(new NullPointerException(DEVICE_HAS_NOT_BLUETOOTH_MODULE));
+                return;
+            }
 
-        if (mBluetoothAdapter == null) {
-            mOnSearchDeviceListener.onError(new NullPointerException(DEVICE_HAS_NOT_BLUETOOTH_MODULE));
-            return;
+            if (mReceiver == null) mReceiver = new Receiver();
+
+            // ACTION_FOUND
+            IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+            mContext.registerReceiver(mReceiver, filter);
+
+            // ACTION_DISCOVERY_FINISHED
+            filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+            mContext.registerReceiver(mReceiver, filter);
+
+            mNeed2unRegister = true;
+
+            mBondedList.clear();
+            mNewList.clear();
+
+            if (mBluetoothAdapter.isDiscovering())
+                mBluetoothAdapter.cancelDiscovery();
+            mBluetoothAdapter.startDiscovery();
+
+            if (mOnSearchDeviceListener != null)
+                mOnSearchDeviceListener.onStartDiscovery();
         }
-
-        if (mReceiver == null) mReceiver = new Receiver();
-
-        // ACTION_FOUND
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        mContext.registerReceiver(mReceiver, filter);
-
-        // ACTION_DISCOVERY_FINISHED
-        filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        mContext.registerReceiver(mReceiver, filter);
-
-        mNeed2unRegister = true;
-
-        mBondedList.clear();
-        mNewList.clear();
-
-        if (mBluetoothAdapter.isDiscovering())
-            mBluetoothAdapter.cancelDiscovery();
-        mBluetoothAdapter.startDiscovery();
-
-        if (mOnSearchDeviceListener != null)
-            mOnSearchDeviceListener.onStartDiscovery();
 
     }
 
@@ -164,8 +166,6 @@ public class BlueManager {
                     mBondedList.add(device);
                 }
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                if (mOnSearchDeviceListener != null)
-                    mOnSearchDeviceListener.onSearchCompleted(mBondedList, mNewList);
             }
         }
     }
@@ -207,15 +207,28 @@ public class BlueManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
-    public void sendMessage(MessageBean item) {
-        mMessageBeanQueue.add(item);
-        WriteRunnable writeRunnable = new WriteRunnable(null);
-        mExecutorService.submit(writeRunnable);
-        number = 0;
-        what = true;
+    public void closeDevice() {
+        if (mCurrStatus == STATUS.CONNECTED) {
+            mReadable = false;
+            mWritable = false;
+            try {
+                if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled() && mSocket != null && mSocket.isConnected()) {
+                    mSocket.close();
+                    mSocket = null;
+                    if (readRunnable != null) {
+                        readRunnable = null;
+                    }
+                } else {
+                    Log.i("blue", "closeDevice faield please check bluetooth is enable and the mSocket is connected !");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.i("blue", "the bluetooth is not conencted ! please connect devices !");
+        }
     }
 
     /**
@@ -230,6 +243,12 @@ public class BlueManager {
                 throw new IllegalArgumentException("mac address is null or empty!");
             if (!BluetoothAdapter.checkBluetoothAddress(mac))
                 throw new IllegalArgumentException("mac address is not correct! make sure it's upper case!");
+            if (mReadable = false) {
+                mReadable = true;
+            }
+            if (mWritable = false) {
+                mWritable = true;
+            }
             ConnectDeviceRunnable connectDeviceRunnable = new ConnectDeviceRunnable(mac, listener);
             checkNotNull(mExecutorService);
             mExecutorService.submit(connectDeviceRunnable);
@@ -443,6 +462,7 @@ public class BlueManager {
                 }
             }
         }
+
     }
 
     /**
