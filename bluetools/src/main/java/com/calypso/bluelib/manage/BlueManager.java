@@ -50,7 +50,7 @@ public class BlueManager {
     private BluetoothSocket mSocket;
     private OutputStream mOutputStream;
     private InputStream mInputStream;
-    private ReadRunnable_ readRunnable;
+    private ReadRunnable readRunnable;
     private Context mContext;
     private static int DEFAULT_BUFFER_SIZE = 10;
     private volatile boolean mWritable = true;
@@ -195,7 +195,7 @@ public class BlueManager {
                 what = true;
                 if (needResponse) {
                     if (readRunnable == null) {
-                        readRunnable = new ReadRunnable_(onReceiveMessageListener);
+                        readRunnable = new ReadRunnable(onReceiveMessageListener);
                         mExecutorService.submit(readRunnable);
                     } else {
                         Log.i("blue", "readRunnable is not null !");
@@ -209,6 +209,9 @@ public class BlueManager {
         }
     }
 
+    /**
+     * 断开当前连接的蓝牙设备
+     */
     public void closeDevice() {
         if (mCurrStatus == STATUS.CONNECTED) {
             mReadable = false;
@@ -350,11 +353,11 @@ public class BlueManager {
     /**
      * 读取bluetooth流线程
      */
-    private class ReadRunnable_ implements Runnable {
+    private class ReadRunnable implements Runnable {
 
         private OnReceiveMessageListener mListener;
 
-        public ReadRunnable_(OnReceiveMessageListener listener) {
+        public ReadRunnable(OnReceiveMessageListener listener) {
             mListener = listener;
         }
 

@@ -171,6 +171,73 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
                        mCurrStatus = STATUS.FREE;
                    }
 
+   当设备连接成功之后，就可以给蓝牙设备发送消息了。 通过调用bluemanage.sendMessage(MessageBean mesaage，
+   needResponse，OnSendMessageListener listener，OnReceiveMessageListener listener);在bluemange里会开
+   起一个WriteRunnable写线程和一个ReadRunnable，读线程只会在第一次发消息时初始化一次。以后都是用这个线程
+   去读从蓝牙返回的数据。
 
+        写数据
+          writer.write(item.text);
+          writer.newLine();
+          writer.flush();
 
+   在WriteRunnable 的run方法中通过mOutputStream流将数据传送给蓝牙设备,当蓝牙接受到消息也就会返回数据，
+   在ReadRunnable中从mInputStream里不断的读取数据。这里有一个问题，就是有的时候从蓝牙口都的数据并不是一
+   个完整的数据，这里就是一个坑。首先你需要知道你需要什么数据，什么格式，数据的长度。这里我们的数据的格式
+   类似是一帧一帧，而且我们的帧长度固定大小是10. 那么我们就可以在这里做一些你想做的事了。
 
+ # 坑
+    都数据不完整，是因为我们开启线程之后会一直读，有时候蓝牙并没有返回数据，或者没有返回完整数据，这个时候
+    我们需要在这做一些特殊处理。
+
+            int count = 0;
+            while (count == 0) {
+                count = stream.available();//输入流中的数据个数。
+            }
+
+    通过以上代码可以确保读的数据不会是0。通过下边的代码可以确保读到完整数据之后才会走我的回调，保证了数据
+    的完整性。这里的what只是我用来区分当前读到的数据是进度信息，还是真正想要的信息。
+
+             if (count == 10 && what) {
+                  int num = stream.read(buffer);
+                  String progress = TypeConversion.bytesToHexStrings(buffer);
+                  Log.i("progress", progress);
+                  if (mListener != null) {
+                      mListener.onProgressUpdate(progress, 0);
+                  }
+              } else if (count >= 10) {
+                  what = false;
+                  int num = stream.read(buffer);
+                  String detect = TypeConversion.bytesToHexStrings(buffer);
+                  builder.append(detect);
+                  Log.i("detect", detect);
+                  if (detect.endsWith("04 ")) {
+                      number++;//这个number也是一个标记，用来标记当前读了多少信息，当读完所有的信息就
+                               //回调接口。通知界面信息读取完整。
+                  }
+                  if (number == 5) {
+                      if (mListener != null) {
+                          mListener.onDetectDataFinish();
+                          mListener.onNewLine(builder.toString().trim());
+                          builder.delete(0, builder.length());
+                      }
+                  } else {
+                      if (mListener != null) {
+                          mListener.onDetectDataUpdate(detect);
+                      }
+                  }
+              }
+
+    到这里写信息及读信息大概就是这样。 下边是BlueManager提供的一些方法：
+
+     requestEnableBt()    开启蓝牙
+
+     searchDevices()      搜索蓝牙设备
+
+     connectDevice()      连接蓝牙设备
+
+     closeDevice()        断开蓝牙连接
+
+     sendMessage()        发送消息
+
+     close()              关闭销毁蓝牙
