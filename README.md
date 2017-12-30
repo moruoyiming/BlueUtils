@@ -236,7 +236,7 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
               }
 
 
-    下边是BlueManager提供的一些方法：
+ # 下边是BlueManager提供的一些方法：
 
      requestEnableBt()    开启蓝牙
 
@@ -250,11 +250,12 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
 
      close()              关闭销毁蓝牙
 
-     BlueManager大概的使用流程及大致原理就说到这里，口才不是很好，平常也不怎么写博客，有什么问题大家
+ # 结尾
+     BlueManager大概的使用流程及大致原理就说到这里，口才不是很好，平常也不怎么写博客，有什么问题大家可以
      探讨一下。项目代码部分参考BluetoothHelper 项目，在此基础上做了一些分包优化。如有雷同，不属巧合，
      我就是抄的你的。哈哈哈哈~~  希望对那些在踩蓝牙坑的小伙伴有帮助~~~
 
-     #Contact Me
+ # Contact Me
      QQ: 798774875
      Email: moruoyiming123@gmail.com
      GitHub: https://github.com/moruoyiming
