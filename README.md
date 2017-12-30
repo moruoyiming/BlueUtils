@@ -10,6 +10,13 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
   发现设备->配对/绑定设备->建立连接->数据通信
   经典蓝牙和低功耗蓝牙除了配对/绑定这个环节是一样的之外，其它三个环节都是不同的。
   
+# 截图
+![image](https://github.com/moruoyiming/BlueUtils/blob/master/pics/Screenshot_2017-12-29-15-58-50-172_com.calypso.bu.png) 
+![image](https://github.com/moruoyiming/BlueUtils/blob/master/pics/Screenshot_2017-12-29-15-59-22-173_com.calypso.bu.png) 
+![image](https://github.com/moruoyiming/BlueUtils/blob/master/pics/Screenshot_2017-12-29-15-59-33-044_com.calypso.bu.png) 
+![image](https://github.com/moruoyiming/BlueUtils/blob/master/pics/Screenshot_2017-12-29-15-59-44-944_com.calypso.bu.png) 
+  
+  
 # 详解
   公司最近在要做一个蓝牙与串口通讯的项目，然后就涉及到手机端与蓝牙的连接及数据交互。大致需求就是通过手机搜索硬件蓝牙
   设备，然后连接上蓝牙，通过手机端的指令消息来获取串口信息，在通过蓝牙返回数据到手机端。在这之前看了一些开源的项目，
@@ -186,8 +193,8 @@ http://www.loverobots.cn/the-analysis-is-simple-compared-with-the-classic-blueto
    个完整的数据，这里就是一个坑。首先你需要知道你需要什么数据，什么格式，数据的长度。这里我们的数据的格式
    类似是一帧一帧，而且我们的帧长度固定大小是10. 那么我们就可以在这里做一些你想做的事了。
 
- # 坑
-    都数据不完整，是因为我们开启线程之后会一直读，有时候蓝牙并没有返回数据，或者没有返回完整数据，这个时候
+ # 坑 有时候从蓝牙socket 中读取的数据不完整
+    读数据不完整，是因为我们开启线程之后会一直读，有时候蓝牙并没有返回数据，或者没有返回完整数据，这个时候
     我们需要在这做一些特殊处理。
 
             int count = 0;
