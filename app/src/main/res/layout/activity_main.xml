@@ -40,25 +40,50 @@
             android:layout_height="wrap_content"
             android:text="断开设备" />
     </LinearLayout>
+    　
 
-    <TextView
-        android:id="@+id/content"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/topl" />
-    <TextView
-        android:id="@+id/what"
+        android:layout_height="match_parent"
+        android:layout_below="@id/topl"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/what"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/content"
+            android:textSize="10sp" />
+
+        <ProgressBar
+            android:id="@+id/progressbar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="5dp" />
+    </RelativeLayout>
+    　
+
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="10sp"
-        android:layout_below="@id/content" />
-    <ProgressBar
-        android:id="@+id/progressbar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="5dp" />
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:layout_below="@id/topl">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_rv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#bbccaa"
+            android:scrollbars="vertical" />
+
+    </RelativeLayout>
 
 
 </RelativeLayout>
