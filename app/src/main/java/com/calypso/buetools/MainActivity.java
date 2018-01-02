@@ -75,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
         stringBuilder = new StringBuilder();
         bluemanage.requestEnableBt();
         if (Build.VERSION.SDK_INT >= 23) {
-            //判断是否有权限
             if (ContextCompat.checkSelfPermission(MainActivity.this,
                     Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
@@ -270,16 +269,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        // TODO Auto-generated method stub
         if (requestCode == 2) {
-            if (permissions[0].equals(Manifest.permission.ACCESS_COARSE_LOCATION)
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 用户同意使用该权限
+            if (permissions[0].equals(Manifest.permission.ACCESS_COARSE_LOCATION) && grantResults[0]
+                    == PackageManager.PERMISSION_GRANTED) {
             } else {
-                // 用户不同意，向用户展示该权限作用
-                if (!ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                    //showTipDialog("用来扫描附件蓝牙设备的权限，请手动开启！");
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.
+                        permission.ACCESS_COARSE_LOCATION)) {
                     return;
                 }
             }
@@ -289,6 +284,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        bluemanage.close();
+        if (bluemanage != null) {
+            bluemanage.close();
+            bluemanage = null;
+        }
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+            handler = null;
+        }
+
     }
 }
