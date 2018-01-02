@@ -156,7 +156,10 @@ public class BlueManager {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+            if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
+                if (mOnSearchDeviceListener != null)
+                    mOnSearchDeviceListener.onStartDiscovery();
+            } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if (mOnSearchDeviceListener != null)
                     mOnSearchDeviceListener.onNewDeviceFound(device);
@@ -166,6 +169,8 @@ public class BlueManager {
                     mBondedList.add(device);
                 }
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                if (mOnSearchDeviceListener != null)
+                    mOnSearchDeviceListener.onSearchCompleted(mBondedList, mNewList);
             }
         }
     }

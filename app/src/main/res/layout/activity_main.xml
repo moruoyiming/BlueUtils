@@ -76,12 +76,7 @@
         android:visibility="gone"
         android:layout_below="@id/topl">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_rv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#bbccaa"
-            android:scrollbars="vertical" />
+
 
     </RelativeLayout>
 
