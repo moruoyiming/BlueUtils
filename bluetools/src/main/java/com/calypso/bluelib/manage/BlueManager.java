@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.calypso.bluelib.Constants;
 import com.calypso.bluelib.bean.MessageBean;
+import com.calypso.bluelib.bean.SearchResult;
 import com.calypso.bluelib.listener.OnConnectListener;
 import com.calypso.bluelib.listener.OnReceiveMessageListener;
 import com.calypso.bluelib.listener.OnSearchDeviceListener;
@@ -24,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
@@ -40,8 +42,8 @@ public class BlueManager {
     private static final String TAG = BlueManager.class.getSimpleName();
     private Queue<MessageBean> mMessageBeanQueue = new LinkedBlockingQueue<>();
     private ExecutorService mExecutorService = Executors.newCachedThreadPool();
-    private List<BluetoothDevice> mBondedList = new ArrayList<>();
-    private List<BluetoothDevice> mNewList = new ArrayList<>();
+    private List<SearchResult> mBondedList = new ArrayList<>();
+    private List<SearchResult> mNewList = new ArrayList<>();
     private OnSearchDeviceListener mOnSearchDeviceListener;
     private volatile Receiver mReceiver = new Receiver();
     private volatile STATUS mCurrStatus = STATUS.FREE;
@@ -58,7 +60,7 @@ public class BlueManager {
     private boolean mNeed2unRegister;
     private boolean what = true;
     private int number = 0;
-
+    private HashMap<String,Object> paar=new HashMap<>();
     private enum STATUS {
         DISCOVERING,
         CONNECTED,
@@ -164,9 +166,15 @@ public class BlueManager {
                 if (mOnSearchDeviceListener != null)
                     mOnSearchDeviceListener.onNewDeviceFound(device);
                 if (device.getBondState() == BluetoothDevice.BOND_NONE) {
-                    mNewList.add(device);
+                    if(!paar.containsKey(device.getAddress())){
+                        int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI,Short.MIN_VALUE);
+                        SearchResult searchResult=new SearchResult(device,rssi,null);
+                        mNewList.add(searchResult);
+                    }
                 } else if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
-                    mBondedList.add(device);
+                    int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI,Short.MIN_VALUE);
+                    SearchResult searchResult=new SearchResult(device,rssi,null);
+                    mBondedList.add(searchResult);
                 }
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 if (mOnSearchDeviceListener != null)

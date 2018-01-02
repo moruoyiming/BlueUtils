@@ -1,4 +1,4 @@
-package com.calypso.buetools;
+package com.calypso.bluelib.bean;
 
 import android.bluetooth.BluetoothDevice;
 import android.os.Parcel;
@@ -66,7 +66,7 @@ public class SearchResult implements Parcelable {
         this.scanRecord = in.createByteArray();
     }
 
-    public static final Parcelable.Creator<SearchResult> CREATOR = new Parcelable.Creator<SearchResult>() {
+    public static final Creator<SearchResult> CREATOR = new Creator<SearchResult>() {
         public SearchResult createFromParcel(Parcel source) {
             return new SearchResult(source);
         }

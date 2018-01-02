@@ -10,13 +10,17 @@ import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.calypso.bluelib.bean.MessageBean;
+import com.calypso.bluelib.bean.SearchResult;
 import com.calypso.bluelib.listener.OnConnectListener;
 import com.calypso.bluelib.listener.OnReceiveMessageListener;
 import com.calypso.bluelib.listener.OnSearchDeviceListener;
@@ -24,6 +28,7 @@ import com.calypso.bluelib.listener.OnSendMessageListener;
 import com.calypso.bluelib.manage.BlueManager;
 import com.calypso.bluelib.utils.TypeConversion;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,6 +40,11 @@ public class MainActivity extends AppCompatActivity {
     private TextView contextView;
     private ProgressBar progressBar;
     private StringBuilder stringBuilder;
+    private List<SearchResult> mDevices;
+    private DeviceListAdapter mAdapter;
+    private RecyclerView recycleView;
+    private RelativeLayout relativeLayout;
+    private RelativeLayout relativeLayout2;
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -68,6 +78,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mDevices = new ArrayList<SearchResult>();
+        mAdapter = new DeviceListAdapter(R.layout.device_list_item, mDevices);
+        relativeLayout = findViewById(R.id.parent_r1);
+        relativeLayout2 = findViewById(R.id.parent_r2);
+        recycleView = findViewById(R.id.blue_rv);
+        recycleView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        recycleView.setAdapter(mAdapter);
         textView = (TextView) findViewById(R.id.content);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         contextView = findViewById(R.id.what);
@@ -106,13 +123,18 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onSearchCompleted(List<BluetoothDevice> bondedList, List<BluetoothDevice> newList) {
+                    public void onSearchCompleted(List<SearchResult> bondedList, List<SearchResult> newList) {
                         Log.d(TAG, "SearchCompleted: bondedList" + bondedList.toString());
                         Log.d(TAG, "SearchCompleted: newList" + newList.toString());
                         Message message = handler.obtainMessage();
                         message.what = 0;
                         message.obj = "搜索完成";
                         handler.sendMessage(message);
+                        mDevices.clear();
+                        mDevices.addAll(newList);
+                        mAdapter.notifyDataSetChanged();
+                        relativeLayout2.setVisibility(View.GONE);
+                        relativeLayout.setVisibility(View.VISIBLE);
                     }
 
                     @Override

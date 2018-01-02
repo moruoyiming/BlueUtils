@@ -2,6 +2,8 @@ package com.calypso.bluelib.listener;
 
 import android.bluetooth.BluetoothDevice;
 
+import com.calypso.bluelib.bean.SearchResult;
+
 import java.util.List;
 
 /**
@@ -28,5 +30,5 @@ public interface OnSearchDeviceListener extends IErrorListener {
      * @param bondedList the remote devices those are bonded(paired).
      * @param newList    the remote devices those are not bonded(paired).
      */
-    void onSearchCompleted(List<BluetoothDevice> bondedList, List<BluetoothDevice> newList);
+    void onSearchCompleted(List<SearchResult> bondedList, List<SearchResult> newList);
 }

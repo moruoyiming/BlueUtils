@@ -43,6 +43,7 @@
     　
 
     <RelativeLayout
+        android:id="@+id/parent_r2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/topl"
@@ -71,12 +72,16 @@
     　
 
     <RelativeLayout
+        android:id="@+id/parent_r1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        android:layout_below="@id/topl">
+        android:layout_below="@id/topl"
+        android:visibility="gone">
 
-
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/blue_rv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"></android.support.v7.widget.RecyclerView>
 
     </RelativeLayout>
 
