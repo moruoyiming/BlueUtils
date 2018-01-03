@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recycleView;
     private RelativeLayout devieslist;
     private RelativeLayout deviesinfo;
+    private String mac;
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -71,6 +72,11 @@ public class MainActivity extends AppCompatActivity {
                     stringBuilder.append(message);
                     contextView.setText(stringBuilder.toString());
                     break;
+                case 4:
+                    statusView.setText(message);
+                    deviesinfo.setVisibility(View.VISIBLE);
+                    devieslist.setVisibility(View.GONE);
+                    break;
             }
         }
     };
@@ -79,15 +85,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        recycleView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        mDevices = new ArrayList<>();
         mAdapter = new DeviceListAdapter(R.layout.device_list_item, mDevices);
         bluemanage = BlueManager.getInstance(getApplicationContext());
         stringBuilder = new StringBuilder();
-        mDevices = new ArrayList<>();
         devieslist = findViewById(R.id.parent_r1);
         deviesinfo = findViewById(R.id.parent_r2);
         progressBar = findViewById(R.id.progressbar);
         recycleView = findViewById(R.id.blue_rv);
+        recycleView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         contextView = findViewById(R.id.context);
         statusView = findViewById(R.id.status);
         recycleView.setAdapter(mAdapter);
@@ -141,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
         mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                final String mac = mDevices.get(position).getAddress();
+                mac = mDevices.get(position).getAddress();
                 bluemanage.connectDevice(mac, new OnConnectListener() {
                     @Override
                     public void onConnectStart() {
@@ -164,9 +170,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onConectSuccess() {
-                        sendMessage(0, "连接成功 MAC: " + mac);
-                        deviesinfo.setVisibility(View.VISIBLE);
-                        devieslist.setVisibility(View.GONE);
+                        sendMessage(4, "连接成功 MAC: " +mac);
                         Log.i("blue", "onConectSuccess");
                     }
 
@@ -176,6 +180,14 @@ public class MainActivity extends AppCompatActivity {
                         Log.i("blue", "onError");
                     }
                 });
+            }
+        });
+
+        findViewById(R.id.get_sn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MessageBean item = new MessageBean(TypeConversion.getDeviceVersion());
+                bluemanage.sendMessage(item,true,null,null);
             }
         });
 

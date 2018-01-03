@@ -16,7 +16,7 @@ public class TypeConversion {
     public static char[] baseStart = {(byte) 0x01};
     public static char[] baseEnd = {(byte) 0x04};
     private static char[] startDetect = {(byte) 0x31, (byte) 0x32, (byte) 0x30, (byte) 0x30};
-
+    private static char[] deviceInfo = {(byte) 0x31, (byte) 0x31, (byte) 0x30, (byte) 0x30};
     /**
      * 指令组装
      *
@@ -50,7 +50,18 @@ public class TypeConversion {
         char[] ret = buildControllerProtocol(baseStart, startDetect, baseEnd);
         return ret;
     }
+    /**
+     * get device versioncode
+     * request  0x01 0x31 0x31 0x30 0x30 0x4
+     * reponse  01 39 31 30 3C 35 36 33 31 32 3E 33 30 33 30 33 31 3C 32 33 3D 3B 3F 34 30 31 36 35 31 04
+     *
+     * @return
+     */
 
+    public static char[] getDeviceVersion() {
+        char[] ret = buildControllerProtocol(baseStart, deviceInfo, baseEnd);
+        return ret;
+    }
     /**
      * 是否包含某字段
      *
