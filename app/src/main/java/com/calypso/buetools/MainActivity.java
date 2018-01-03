@@ -27,6 +27,7 @@ import com.calypso.bluelib.listener.OnSearchDeviceListener;
 import com.calypso.bluelib.listener.OnSendMessageListener;
 import com.calypso.bluelib.manage.BlueManager;
 import com.calypso.bluelib.utils.TypeConversion;
+import com.chad.library.adapter.base.BaseQuickAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,15 +105,13 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_search).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-
                 bluemanage.searchDevices(new OnSearchDeviceListener() {
                     @Override
                     public void onStartDiscovery() {
                         Log.d(TAG, "onStartDiscovery()");
                         Message message = handler.obtainMessage();
                         message.what = 0;
-                        message.obj = "搜索设备";
+                        message.obj = "正在搜索设备..";
                         handler.sendMessage(message);
 
                     }
@@ -142,14 +141,14 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 });
-
-
             }
         });
-        findViewById(R.id.btn_connect).setOnClickListener(new View.OnClickListener() {
+
+        mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
-                bluemanage.connectDevice("00:21:13:02:9B:F1", new OnConnectListener() {
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                String mac = mDevices.get(position).getAddress();
+                bluemanage.connectDevice(mac, new OnConnectListener() {
                     @Override
                     public void onConnectStart() {
                         Log.i("blue", "onConnectStart");
@@ -184,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
                         message.what = 0;
                         message.obj = "连接成功 00:21:13:02:9B:F1";
                         handler.sendMessage(message);
+                        relativeLayout2.setVisibility(View.VISIBLE);
+                        relativeLayout.setVisibility(View.GONE);
                     }
 
                     @Override
@@ -191,9 +192,15 @@ public class MainActivity extends AppCompatActivity {
                         Log.i("blue", "onError");
                     }
                 });
-
             }
         });
+//        findViewById(R.id.btn_connect).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//
+//            }
+//        });
 
         findViewById(R.id.btn_send2).setOnClickListener(new View.OnClickListener() {
             @Override

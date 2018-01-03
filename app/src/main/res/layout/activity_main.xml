@@ -26,6 +26,7 @@
             android:id="@+id/btn_connect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:text="连接设备" />
 
         <Button
