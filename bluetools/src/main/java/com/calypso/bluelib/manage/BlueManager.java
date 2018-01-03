@@ -241,6 +241,8 @@ public class BlueManager {
                 if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled() && mSocket != null && mSocket.isConnected()) {
                     mSocket.close();
                     mSocket = null;
+                    number = 0;
+                    what = true;
                     if (readRunnable != null) {
                         readRunnable = null;
                     }
