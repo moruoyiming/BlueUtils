@@ -44,8 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private List<SearchResult> mDevices;
     private DeviceListAdapter mAdapter;
     private RecyclerView recycleView;
-    private RelativeLayout relativeLayout;
-    private RelativeLayout relativeLayout2;
+    private RelativeLayout devieslistparent;
+    private RelativeLayout devicedetails;
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -81,8 +81,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mDevices = new ArrayList<SearchResult>();
         mAdapter = new DeviceListAdapter(R.layout.device_list_item, mDevices);
-        relativeLayout = findViewById(R.id.parent_r1);
-        relativeLayout2 = findViewById(R.id.parent_r2);
+        devieslistparent = findViewById(R.id.parent_r1);
+        devicedetails = findViewById(R.id.parent_r2);
         recycleView = findViewById(R.id.blue_rv);
         recycleView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         recycleView.setAdapter(mAdapter);
@@ -108,11 +108,8 @@ public class MainActivity extends AppCompatActivity {
                 bluemanage.searchDevices(new OnSearchDeviceListener() {
                     @Override
                     public void onStartDiscovery() {
+                        sendMessage(0, "正在搜索设备..");
                         Log.d(TAG, "onStartDiscovery()");
-                        Message message = handler.obtainMessage();
-                        message.what = 0;
-                        message.obj = "正在搜索设备..";
-                        handler.sendMessage(message);
 
                     }
 
@@ -125,20 +122,18 @@ public class MainActivity extends AppCompatActivity {
                     public void onSearchCompleted(List<SearchResult> bondedList, List<SearchResult> newList) {
                         Log.d(TAG, "SearchCompleted: bondedList" + bondedList.toString());
                         Log.d(TAG, "SearchCompleted: newList" + newList.toString());
-                        Message message = handler.obtainMessage();
-                        message.what = 0;
-                        message.obj = "搜索完成";
-                        handler.sendMessage(message);
+                        sendMessage(0, "搜索完成");
                         mDevices.clear();
                         mDevices.addAll(newList);
                         mAdapter.notifyDataSetChanged();
-                        relativeLayout2.setVisibility(View.GONE);
-                        relativeLayout.setVisibility(View.VISIBLE);
+                        devicedetails.setVisibility(View.GONE);
+                        devieslistparent.setVisibility(View.VISIBLE);
                     }
 
                     @Override
                     public void onError(Exception e) {
                         e.printStackTrace();
+                        sendMessage(0, "搜索失败");
                     }
                 });
             }
@@ -151,40 +146,29 @@ public class MainActivity extends AppCompatActivity {
                 bluemanage.connectDevice(mac, new OnConnectListener() {
                     @Override
                     public void onConnectStart() {
+                        sendMessage(0, "连接设备");
                         Log.i("blue", "onConnectStart");
-                        Message message = handler.obtainMessage();
-                        message.what = 0;
-                        message.obj = "连接设备";
-                        handler.sendMessage(message);
                     }
 
                     @Override
                     public void onConnectting() {
+                        sendMessage(0, "正在连接");
                         Log.i("blue", "onConnectting");
-                        Message message = handler.obtainMessage();
-                        message.what = 0;
-                        message.obj = "正在连接";
-                        handler.sendMessage(message);
                     }
 
                     @Override
                     public void onConnectFailed() {
+                        sendMessage(0, "连接失败");
                         Log.i("blue", "onConnectFailed");
-                        Message message = handler.obtainMessage();
-                        message.what = 0;
-                        message.obj = "连接失败";
-                        handler.sendMessage(message);
+
                     }
 
                     @Override
                     public void onConectSuccess() {
+                        sendMessage(0, "连接成功");
+                        devicedetails.setVisibility(View.VISIBLE);
+                        devieslistparent.setVisibility(View.GONE);
                         Log.i("blue", "onConectSuccess");
-                        Message message = handler.obtainMessage();
-                        message.what = 0;
-                        message.obj = "连接成功";
-                        handler.sendMessage(message);
-                        relativeLayout2.setVisibility(View.VISIBLE);
-                        relativeLayout.setVisibility(View.GONE);
                     }
 
                     @Override
@@ -194,18 +178,13 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
-//        findViewById(R.id.btn_connect).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//
-//            }
-//        });
 
         findViewById(R.id.btn_send2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 bluemanage.closeDevice();
+                devieslistparent.setVisibility(View.VISIBLE);
+                devicedetails.setVisibility(View.GONE);
             }
         });
         findViewById(R.id.btn_send).setOnClickListener(new View.OnClickListener() {
@@ -219,28 +198,19 @@ public class MainActivity extends AppCompatActivity {
                 bluemanage.sendMessage(item, true, new OnSendMessageListener() {
                     @Override
                     public void onSuccess(int status, String response) {
-                        Message message = handler.obtainMessage();
-                        message.what = 0;
-                        message.obj = "发送成功";
-                        handler.sendMessage(message);
+                        sendMessage(0, "发送成功");
                         Log.i("blue", "send message is success ! ");
                     }
 
                     @Override
                     public void onConnectionLost(Exception e) {
-                        Message message = handler.obtainMessage();
-                        message.what = 0;
-                        message.obj = "连接断开";
-                        handler.sendMessage(message);
+                        sendMessage(0, "连接断开");
                         Log.i("blue", "send message is onConnectionLost ! ");
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        Message message = handler.obtainMessage();
-                        message.what = 0;
-                        message.obj = "发送失败";
-                        handler.sendMessage(message);
+                        sendMessage(0, "发送失败");
                         Log.i("blue", "send message is onError ! ");
                     }
                 }, new OnReceiveMessageListener() {
@@ -248,43 +218,28 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onProgressUpdate(String what, int progress) {
-                        Message message = handler.obtainMessage();
-                        message.what = 1;
-                        message.obj = what;
-                        handler.sendMessage(message);
+                        sendMessage(1, what);
                     }
 
                     @Override
                     public void onDetectDataUpdate(String what) {
-                        Message message = handler.obtainMessage();
-                        message.what = 3;
-                        message.obj = what;
-                        handler.sendMessage(message);
+                        sendMessage(3, what);
                     }
 
                     @Override
                     public void onDetectDataFinish() {
-                        Message message = handler.obtainMessage();
-                        message.what = 2;
-                        message.obj = "体检完成";
-                        handler.sendMessage(message);
+                        sendMessage(2, "体检完成");
                         Log.i("blue", "receive message is onDetectDataFinish");
                     }
 
                     @Override
                     public void onNewLine(String s) {
-                        Message message = handler.obtainMessage();
-                        message.what = 3;
-                        message.obj = s;
-                        handler.sendMessage(message);
+                        sendMessage(3, s);
                     }
 
                     @Override
                     public void onConnectionLost(Exception e) {
-                        Message message = handler.obtainMessage();
-                        message.what = 0;
-                        message.obj = "连接断开";
-                        handler.sendMessage(message);
+                        sendMessage(0, "连接断开");
                         Log.i("blue", "receive message is onConnectionLost ! ");
                     }
 
@@ -295,6 +250,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    public void sendMessage(int type, String context) {
+        if (handler != null) {
+            Message message = handler.obtainMessage();
+            message.what = type;
+            message.obj = context;
+            handler.sendMessage(message);
+        }
     }
 
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
