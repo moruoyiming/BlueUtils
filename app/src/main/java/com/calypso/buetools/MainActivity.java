@@ -269,11 +269,12 @@ public class MainActivity extends AppCompatActivity {
                 bluemanage.sendMessage(item, true);
             }
         });
-
+null
         findViewById(R.id.btn_send2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 bluemanage.closeDevice();
+                contextView.setText();
                 devieslist.setVisibility(View.VISIBLE);
                 deviesinfo.setVisibility(View.GONE);
             }
