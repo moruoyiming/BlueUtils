@@ -429,6 +429,7 @@ public class BlueManager {
                         Log.i("progress", progress);
                         onReceiveMessageListener.onProgressUpdate(progress, 0);
                     } else if (count >= 10) {
+                        Log.i("how", "  等于10?   " + (count == 10));
                         what = false;
                         int num = stream.read(buffer);
                         String detect = TypeConversion.bytesToHexStrings(buffer);
@@ -458,7 +459,6 @@ public class BlueManager {
      * 输入bluetooth流线程
      */
     private class WriteRunnable implements Runnable {
-
 
         @Override
         public void run() {
