@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recycleView;
     private RelativeLayout devieslist;
     private RelativeLayout deviesinfo;
-    private String mac;
+
     private OnSearchDeviceListener onSearchDeviceListener;
     private OnConnectListener onConnectListener;
     private OnSendMessageListener onSendMessageListener;
@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
         mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                mac = mDevices.get(position).getAddress();
+                String mac = mDevices.get(position).getAddress();
                 bluemanage.connectDevice(mac);
             }
         });
