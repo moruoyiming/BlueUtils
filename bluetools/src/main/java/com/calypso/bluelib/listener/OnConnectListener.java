@@ -13,5 +13,5 @@ public interface OnConnectListener extends IErrorListener {
 
     void onConnectFailed();
 
-    void onConectSuccess();
+    void onConectSuccess(String mac);
 }

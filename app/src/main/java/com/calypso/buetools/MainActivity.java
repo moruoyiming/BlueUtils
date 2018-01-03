@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onConectSuccess() {
+            public void onConectSuccess(String mac) {
                 sendMessage(4, "连接成功 MAC: " + mac);
                 Log.i("blue", "onConectSuccess");
             }
