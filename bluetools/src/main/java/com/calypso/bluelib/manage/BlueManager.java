@@ -97,7 +97,7 @@ public class BlueManager {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
-    public void setmOnSearchDeviceListener(OnSearchDeviceListener mOnSearchDeviceListener) {
+    public void setOnSearchDeviceListener(OnSearchDeviceListener mOnSearchDeviceListener) {
         this.mOnSearchDeviceListener = mOnSearchDeviceListener;
     }
 
@@ -158,7 +158,6 @@ public class BlueManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     /**

@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         bluemanage = BlueManager.getInstance(getApplicationContext());
-        bluemanage.setmOnSearchDeviceListener(onSearchDeviceListener);
+        bluemanage.setOnSearchDeviceListener(onSearchDeviceListener);
         bluemanage.setOnConnectListener(onConnectListener);
         bluemanage.setOnSendMessageListener(onSendMessageListener);
         bluemanage.setOnReceiveMessageListener(onReceiveMessageListener);
