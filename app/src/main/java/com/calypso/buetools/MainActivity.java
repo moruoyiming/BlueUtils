@@ -84,12 +84,12 @@ public class MainActivity extends AppCompatActivity {
         relativeLayout = findViewById(R.id.parent_r1);
         relativeLayout2 = findViewById(R.id.parent_r2);
         recycleView = findViewById(R.id.blue_rv);
-        recycleView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        recycleView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         recycleView.setAdapter(mAdapter);
         textView = (TextView) findViewById(R.id.content);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         contextView = findViewById(R.id.what);
-        bluemanage = BlueManager.getInstance(MainActivity.this);
+        bluemanage = BlueManager.getInstance(getApplicationContext());
         stringBuilder = new StringBuilder();
         bluemanage.requestEnableBt();
         if (Build.VERSION.SDK_INT >= 23) {

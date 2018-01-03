@@ -299,6 +299,10 @@ public class BlueManager {
             mReceiver = null;
             mNeed2unRegister = !mNeed2unRegister;
         }
+        if (mMessageBeanQueue != null) {
+            mMessageBeanQueue.clear();
+            mMessageBeanQueue = null;
+        }
         mWritable = false;
         mReadable = false;
         try {
@@ -321,6 +325,7 @@ public class BlueManager {
         } catch (Exception e) {
             mSocket = null;
         }
+
         mNewList = null;
         mBondedList = null;
         mReceiver = null;
