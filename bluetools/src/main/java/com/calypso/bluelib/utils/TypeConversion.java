@@ -54,7 +54,7 @@ public class TypeConversion {
      * get device versioncode
      * request  0x01 0x31 0x31 0x30 0x30 0x4
      * reponse  01 39 31 30 3C 35 36 33 31 32 3E 33 30 33 30 33 31 3C 32 33 3D 3B 3F 34 30 31 36 35 31 04
-     *
+     *          01 39 31 30 3C 35 36 33 31 32 3E 33 30 33 30 33 33 31 37 30 34 3B 3B 3B 3B 3B 3B 3B 3B 04
      * @return
      */
 

@@ -45,6 +45,9 @@ public class BlueManager {
     private List<SearchResult> mBondedList = new ArrayList<>();
     private List<SearchResult> mNewList = new ArrayList<>();
     private OnSearchDeviceListener mOnSearchDeviceListener;
+    private OnConnectListener onConnectListener;
+    private OnSendMessageListener onSendMessageListener;
+    private OnReceiveMessageListener onReceiveMessageListener;
     private volatile Receiver mReceiver = new Receiver();
     private volatile STATUS mCurrStatus = STATUS.FREE;
     private BluetoothAdapter mBluetoothAdapter;
@@ -94,6 +97,21 @@ public class BlueManager {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
+    public void setmOnSearchDeviceListener(OnSearchDeviceListener mOnSearchDeviceListener) {
+        this.mOnSearchDeviceListener = mOnSearchDeviceListener;
+    }
+
+    public void setOnConnectListener(OnConnectListener onConnectListener) {
+        this.onConnectListener = onConnectListener;
+    }
+
+    public void setOnSendMessageListener(OnSendMessageListener onSendMessageListener) {
+        this.onSendMessageListener = onSendMessageListener;
+    }
+
+    public void setOnReceiveMessageListener(OnReceiveMessageListener onReceiveMessageListener) {
+        this.onReceiveMessageListener = onReceiveMessageListener;
+    }
 
     /**
      * Request for enable the device's bluetooth asynchronously.
@@ -110,44 +128,31 @@ public class BlueManager {
 
     /**
      * discovery the devices.
-     *
-     * @param listener listener for the process
      */
-    public void searchDevices(OnSearchDeviceListener listener) {
+    public void searchDevices() {
         if (mCurrStatus == STATUS.FREE) {
             mCurrStatus = STATUS.DISCOVERING;
-            checkNotNull(listener);
+            checkNotNull(mOnSearchDeviceListener);
             if (mBondedList == null) mBondedList = new ArrayList<>();
             if (mNewList == null) mNewList = new ArrayList<>();
-
-            mOnSearchDeviceListener = listener;
-
             if (mBluetoothAdapter == null) {
                 mOnSearchDeviceListener.onError(new NullPointerException(DEVICE_HAS_NOT_BLUETOOTH_MODULE));
                 return;
             }
-
             if (mReceiver == null) mReceiver = new Receiver();
-
             // ACTION_FOUND
             IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
             mContext.registerReceiver(mReceiver, filter);
-
             // ACTION_DISCOVERY_FINISHED
             filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
             mContext.registerReceiver(mReceiver, filter);
-
             mNeed2unRegister = true;
-
             mBondedList.clear();
             mNewList.clear();
-
             if (mBluetoothAdapter.isDiscovering())
                 mBluetoothAdapter.cancelDiscovery();
             mBluetoothAdapter.startDiscovery();
-
-            if (mOnSearchDeviceListener != null)
-                mOnSearchDeviceListener.onStartDiscovery();
+            mOnSearchDeviceListener.onStartDiscovery();
         }
 
     }
@@ -164,10 +169,9 @@ public class BlueManager {
                     mOnSearchDeviceListener.onStartDiscovery();
             } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (mOnSearchDeviceListener != null)
-                    mOnSearchDeviceListener.onNewDeviceFound(device);
                 if (device.getBondState() == BluetoothDevice.BOND_NONE) {
                     if (paar != null && !paar.containsKey(device.getAddress())) {
+                        paar.put(device.getAddress(), "mac:" + device.getAddress());
                         if (mNewList != null) {
                             int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
                             SearchResult searchResult = new SearchResult(device, rssi, null);
@@ -196,24 +200,23 @@ public class BlueManager {
      * However, it will blocked if didn't get response getInstance the remote device.
      *
      * @param item         the message need to send
-     * @param listener     lister for the sending process
      * @param needResponse if need to obtain a response getInstance the remote device
      */
-    public void sendMessage(MessageBean item, boolean needResponse, OnSendMessageListener listener, OnReceiveMessageListener onReceiveMessageListener) {
+    public void sendMessage(MessageBean item, boolean needResponse) {
         try {
             if (mCurrStatus == STATUS.CONNECTED) {
                 if (mBluetoothAdapter == null) {
-                    listener.onError(new RuntimeException(DEVICE_HAS_NOT_BLUETOOTH_MODULE));
+                    onSendMessageListener.onError(new RuntimeException(DEVICE_HAS_NOT_BLUETOOTH_MODULE));
                     return;
                 }
                 mMessageBeanQueue.add(item);
-                WriteRunnable writeRunnable = new WriteRunnable(listener);
+                WriteRunnable writeRunnable = new WriteRunnable();
                 mExecutorService.submit(writeRunnable);
                 number = 0;
                 what = true;
                 if (needResponse) {
                     if (readRunnable == null) {
-                        readRunnable = new ReadRunnable(onReceiveMessageListener);
+                        readRunnable = new ReadRunnable();
                         mExecutorService.submit(readRunnable);
                     } else {
                         Log.i("blue", "readRunnable is not null !");
@@ -256,9 +259,8 @@ public class BlueManager {
      * 连接bluetooth
      *
      * @param mac
-     * @param listener
      */
-    public void connectDevice(String mac, OnConnectListener listener) {
+    public void connectDevice(String mac) {
         if (mCurrStatus != STATUS.CONNECTED) {
             if (mac == null || TextUtils.isEmpty(mac))
                 throw new IllegalArgumentException("mac address is null or empty!");
@@ -270,9 +272,12 @@ public class BlueManager {
             if (mWritable = false) {
                 mWritable = true;
             }
-            ConnectDeviceRunnable connectDeviceRunnable = new ConnectDeviceRunnable(mac, listener);
-            checkNotNull(mExecutorService);
-            mExecutorService.submit(connectDeviceRunnable);
+            if (onConnectListener != null) {
+                onConnectListener.onConnectStart();
+                ConnectDeviceRunnable connectDeviceRunnable = new ConnectDeviceRunnable(mac);
+                checkNotNull(mExecutorService);
+                mExecutorService.submit(connectDeviceRunnable);
+            }
         } else {
             Log.i("blue", "the blue is connected !");
         }
@@ -342,38 +347,36 @@ public class BlueManager {
      */
     private class ConnectDeviceRunnable implements Runnable {
         private String mac;
-        private OnConnectListener listener;
 
-        public ConnectDeviceRunnable(String mac, OnConnectListener listener) {
+        public ConnectDeviceRunnable(String mac) {
             this.mac = mac;
-            this.listener = listener;
-            this.listener.onConnectStart();
         }
 
         @Override
         public void run() {
+            if (onConnectListener == null) {
+                Log.i("blue", "the connectListener is null !");
+                return;
+            }
             BluetoothDevice remoteDevice = mBluetoothAdapter.getRemoteDevice(mac);
             mBluetoothAdapter.cancelDiscovery();
             mCurrStatus = STATUS.FREE;
             try {
                 Log.d(TAG, "prepare to connect: " + remoteDevice.getAddress() + " " + remoteDevice.getName());
                 mSocket = remoteDevice.createInsecureRfcommSocketToServiceRecord(UUID.fromString(Constants.STR_UUID));
-                listener.onConnectting();
+                onConnectListener.onConnectting();
                 mSocket.connect();
                 mInputStream = mSocket.getInputStream();
                 mOutputStream = mSocket.getOutputStream();
                 mCurrStatus = STATUS.CONNECTED;
-                if (listener != null) {
-                    listener.onConectSuccess();
-                }
+                onConnectListener.onConectSuccess();
             } catch (Exception e) {
                 e.printStackTrace();
-                if (listener != null)
-                    listener.onConnectFailed();
+                onConnectListener.onConnectFailed();
                 try {
                     mInputStream.close();
                     mOutputStream.close();
-                } catch (IOException closeException) {
+                } catch (Exception closeException) {
                     closeException.printStackTrace();
                 }
                 mCurrStatus = STATUS.FREE;
@@ -386,14 +389,13 @@ public class BlueManager {
      */
     private class ReadRunnable implements Runnable {
 
-        private OnReceiveMessageListener mListener;
-
-        public ReadRunnable(OnReceiveMessageListener listener) {
-            mListener = listener;
-        }
 
         @Override
         public void run() {
+            if (onReceiveMessageListener == null) {
+                Log.i("blue", "the receiverMessageListener is null !");
+                return;
+            }
             mReadable = true;
             InputStream stream = mInputStream;
             while (mCurrStatus != STATUS.CONNECTED && mReadable) ;
@@ -410,9 +412,7 @@ public class BlueManager {
                         int num = stream.read(buffer);
                         String progress = TypeConversion.bytesToHexStrings(buffer);
                         Log.i("progress", progress);
-                        if (mListener != null) {
-                            mListener.onProgressUpdate(progress, 0);
-                        }
+                        onReceiveMessageListener.onProgressUpdate(progress, 0);
                     } else if (count >= 10) {
                         what = false;
                         int num = stream.read(buffer);
@@ -423,23 +423,17 @@ public class BlueManager {
                             number++;
                         }
                         if (number == 5) {
-                            if (mListener != null) {
-                                mListener.onDetectDataFinish();
-                                mListener.onNewLine(builder.toString().trim());
-                                builder.delete(0, builder.length());
-                            }
+                            onReceiveMessageListener.onDetectDataFinish();
+                            onReceiveMessageListener.onNewLine(builder.toString().trim());
+                            builder.delete(0, builder.length());
                         } else {
-                            if (mListener != null) {
-                                mListener.onDetectDataUpdate(detect);
-                            }
+                            onReceiveMessageListener.onDetectDataUpdate(detect);
                         }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (mListener != null) {
-                        mListener.onConnectionLost(e);
-                        mCurrStatus = STATUS.FREE;
-                    }
+                    onReceiveMessageListener.onConnectionLost(e);
+                    mCurrStatus = STATUS.FREE;
                 }
             }
 
@@ -451,14 +445,13 @@ public class BlueManager {
      */
     private class WriteRunnable implements Runnable {
 
-        private OnSendMessageListener listener;
-
-        public WriteRunnable(OnSendMessageListener listener) {
-            this.listener = listener;
-        }
 
         @Override
         public void run() {
+            if (onSendMessageListener == null) {
+                Log.i("blue", "send message listener is null !");
+                return;
+            }
             mWritable = true;
             while (mCurrStatus != STATUS.CONNECTED && mWritable) ;
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(mOutputStream));
@@ -470,12 +463,9 @@ public class BlueManager {
                         writer.newLine();
                         writer.flush();
                         Log.d(TAG, "send string message: " + item.text);
-                        if (listener != null) {
-                            listener.onSuccess(Constants.STATUS_OK, "send string message is success callback !");
-                        }
+                        onSendMessageListener.onSuccess(Constants.STATUS_OK, "send string message is success callback !");
                     } catch (IOException e) {
-                        if (listener != null)
-                            listener.onConnectionLost(e);
+                        onSendMessageListener.onConnectionLost(e);
                         mCurrStatus = STATUS.FREE;
                         break;
                     }
@@ -484,12 +474,9 @@ public class BlueManager {
                         writer.write(item.data);
                         writer.flush();
                         Log.d(TAG, "send char message: " + item.data);
-                        if (listener != null) {
-                            listener.onSuccess(Constants.STATUS_OK, "send char message is success callback !");
-                        }
+                        onSendMessageListener.onSuccess(Constants.STATUS_OK, "send char message is success callback !");
                     } catch (IOException e) {
-                        if (listener != null)
-                            listener.onConnectionLost(e);
+                        onSendMessageListener.onConnectionLost(e);
                         mCurrStatus = STATUS.FREE;
                         break;
                     }

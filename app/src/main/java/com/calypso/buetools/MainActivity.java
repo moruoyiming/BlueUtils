@@ -47,6 +47,10 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout devieslist;
     private RelativeLayout deviesinfo;
     private String mac;
+    private OnSearchDeviceListener onSearchDeviceListener;
+    private OnConnectListener onConnectListener;
+    private OnSendMessageListener onSendMessageListener;
+    private OnReceiveMessageListener onReceiveMessageListener;
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -87,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mDevices = new ArrayList<>();
         mAdapter = new DeviceListAdapter(R.layout.device_list_item, mDevices);
-        bluemanage = BlueManager.getInstance(getApplicationContext());
         stringBuilder = new StringBuilder();
         devieslist = findViewById(R.id.parent_r1);
         deviesinfo = findViewById(R.id.parent_r2);
@@ -97,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
         contextView = findViewById(R.id.context);
         statusView = findViewById(R.id.status);
         recycleView.setAdapter(mAdapter);
-        bluemanage.requestEnableBt();
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(MainActivity.this,
                     Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -108,39 +110,147 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+        initBlueManager();
+        initLisetener();
+
+    }
+
+    /**
+     * 初始化蓝牙管理，设置监听
+     */
+    public void initBlueManager() {
+        onSearchDeviceListener = new OnSearchDeviceListener() {
+            @Override
+            public void onStartDiscovery() {
+                sendMessage(0, "正在搜索设备..");
+                Log.d(TAG, "onStartDiscovery()");
+
+            }
+
+            @Override
+            public void onNewDeviceFound(BluetoothDevice device) {
+                Log.d(TAG, "new device: " + device.getName() + " " + device.getAddress());
+            }
+
+            @Override
+            public void onSearchCompleted(List<SearchResult> bondedList, List<SearchResult> newList) {
+                Log.d(TAG, "SearchCompleted: bondedList" + bondedList.toString());
+                Log.d(TAG, "SearchCompleted: newList" + newList.toString());
+                sendMessage(0, "搜索完成,点击列表进行连接！");
+                mDevices.clear();
+                mDevices.addAll(newList);
+                mAdapter.notifyDataSetChanged();
+                deviesinfo.setVisibility(View.GONE);
+                devieslist.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                sendMessage(0, "搜索失败");
+            }
+        };
+        onConnectListener = new OnConnectListener() {
+            @Override
+            public void onConnectStart() {
+                sendMessage(0, "开始连接");
+                Log.i("blue", "onConnectStart");
+            }
+
+            @Override
+            public void onConnectting() {
+                sendMessage(0, "正在连接..");
+                Log.i("blue", "onConnectting");
+            }
+
+            @Override
+            public void onConnectFailed() {
+                sendMessage(0, "连接失败！");
+                Log.i("blue", "onConnectFailed");
+
+            }
+
+            @Override
+            public void onConectSuccess() {
+                sendMessage(4, "连接成功 MAC: " + mac);
+                Log.i("blue", "onConectSuccess");
+            }
+
+            @Override
+            public void onError(Exception e) {
+                sendMessage(0, "连接异常！");
+                Log.i("blue", "onError");
+            }
+        };
+        onSendMessageListener = new OnSendMessageListener() {
+            @Override
+            public void onSuccess(int status, String response) {
+                sendMessage(0, "发送成功！");
+                Log.i("blue", "send message is success ! ");
+            }
+
+            @Override
+            public void onConnectionLost(Exception e) {
+                sendMessage(0, "连接断开！");
+                Log.i("blue", "send message is onConnectionLost ! ");
+            }
+
+            @Override
+            public void onError(Exception e) {
+                sendMessage(0, "发送失败！");
+                Log.i("blue", "send message is onError ! ");
+            }
+        };
+        onReceiveMessageListener = new OnReceiveMessageListener() {
+
+
+            @Override
+            public void onProgressUpdate(String what, int progress) {
+                sendMessage(1, what);
+            }
+
+            @Override
+            public void onDetectDataUpdate(String what) {
+                sendMessage(3, what);
+            }
+
+            @Override
+            public void onDetectDataFinish() {
+                sendMessage(2, "体检完成！");
+                Log.i("blue", "receive message is onDetectDataFinish");
+            }
+
+            @Override
+            public void onNewLine(String s) {
+                sendMessage(3, s);
+            }
+
+            @Override
+            public void onConnectionLost(Exception e) {
+                sendMessage(0, "连接断开");
+                Log.i("blue", "receive message is onConnectionLost ! ");
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.i("blue", "receive message is onError ! ");
+            }
+        };
+        bluemanage = BlueManager.getInstance(getApplicationContext());
+        bluemanage.setmOnSearchDeviceListener(onSearchDeviceListener);
+        bluemanage.setOnConnectListener(onConnectListener);
+        bluemanage.setOnSendMessageListener(onSendMessageListener);
+        bluemanage.setOnReceiveMessageListener(onReceiveMessageListener);
+        bluemanage.requestEnableBt();
+    }
+
+    /**
+     * 为控件添加事件监听
+     */
+    public void initLisetener() {
         findViewById(R.id.btn_search).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                bluemanage.searchDevices(new OnSearchDeviceListener() {
-                    @Override
-                    public void onStartDiscovery() {
-                        sendMessage(0, "正在搜索设备..");
-                        Log.d(TAG, "onStartDiscovery()");
-
-                    }
-
-                    @Override
-                    public void onNewDeviceFound(BluetoothDevice device) {
-                        Log.d(TAG, "new device: " + device.getName() + " " + device.getAddress());
-                    }
-
-                    @Override
-                    public void onSearchCompleted(List<SearchResult> bondedList, List<SearchResult> newList) {
-                        Log.d(TAG, "SearchCompleted: bondedList" + bondedList.toString());
-                        Log.d(TAG, "SearchCompleted: newList" + newList.toString());
-                        sendMessage(0, "搜索完成,点击列表进行连接！");
-                        mDevices.clear();
-                        mDevices.addAll(newList);
-                        mAdapter.notifyDataSetChanged();
-                        deviesinfo.setVisibility(View.GONE);
-                        devieslist.setVisibility(View.VISIBLE);
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        sendMessage(0, "搜索失败");
-                    }
-                });
+                bluemanage.searchDevices();
             }
         });
 
@@ -148,38 +258,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 mac = mDevices.get(position).getAddress();
-                bluemanage.connectDevice(mac, new OnConnectListener() {
-                    @Override
-                    public void onConnectStart() {
-                        sendMessage(0, "开始连接");
-                        Log.i("blue", "onConnectStart");
-                    }
-
-                    @Override
-                    public void onConnectting() {
-                        sendMessage(0, "正在连接..");
-                        Log.i("blue", "onConnectting");
-                    }
-
-                    @Override
-                    public void onConnectFailed() {
-                        sendMessage(0, "连接失败！");
-                        Log.i("blue", "onConnectFailed");
-
-                    }
-
-                    @Override
-                    public void onConectSuccess() {
-                        sendMessage(4, "连接成功 MAC: " +mac);
-                        Log.i("blue", "onConectSuccess");
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        sendMessage(0, "连接异常！");
-                        Log.i("blue", "onError");
-                    }
-                });
+                bluemanage.connectDevice(mac);
             }
         });
 
@@ -187,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 MessageBean item = new MessageBean(TypeConversion.getDeviceVersion());
-                bluemanage.sendMessage(item,true,null,null);
+                bluemanage.sendMessage(item, true);
             }
         });
 
@@ -207,59 +286,7 @@ public class MainActivity extends AppCompatActivity {
                 stringBuilder.delete(0, stringBuilder.length());
                 contextView.setText("");
                 MessageBean item = new MessageBean(TypeConversion.startDetect());
-                bluemanage.sendMessage(item, true, new OnSendMessageListener() {
-                    @Override
-                    public void onSuccess(int status, String response) {
-                        sendMessage(0, "发送成功！");
-                        Log.i("blue", "send message is success ! ");
-                    }
-
-                    @Override
-                    public void onConnectionLost(Exception e) {
-                        sendMessage(0, "连接断开！");
-                        Log.i("blue", "send message is onConnectionLost ! ");
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        sendMessage(0, "发送失败！");
-                        Log.i("blue", "send message is onError ! ");
-                    }
-                }, new OnReceiveMessageListener() {
-
-
-                    @Override
-                    public void onProgressUpdate(String what, int progress) {
-                        sendMessage(1, what);
-                    }
-
-                    @Override
-                    public void onDetectDataUpdate(String what) {
-                        sendMessage(3, what);
-                    }
-
-                    @Override
-                    public void onDetectDataFinish() {
-                        sendMessage(2, "体检完成！");
-                        Log.i("blue", "receive message is onDetectDataFinish");
-                    }
-
-                    @Override
-                    public void onNewLine(String s) {
-                        sendMessage(3, s);
-                    }
-
-                    @Override
-                    public void onConnectionLost(Exception e) {
-                        sendMessage(0, "连接断开");
-                        Log.i("blue", "receive message is onConnectionLost ! ");
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        Log.i("blue", "receive message is onError ! ");
-                    }
-                });
+                bluemanage.sendMessage(item, true);
             }
         });
     }
