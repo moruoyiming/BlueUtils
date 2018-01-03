@@ -167,15 +167,19 @@ public class BlueManager {
                 if (mOnSearchDeviceListener != null)
                     mOnSearchDeviceListener.onNewDeviceFound(device);
                 if (device.getBondState() == BluetoothDevice.BOND_NONE) {
-                    if (!paar.containsKey(device.getAddress())) {
-                        int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
-                        SearchResult searchResult = new SearchResult(device, rssi, null);
-                        mNewList.add(searchResult);
+                    if (paar != null && !paar.containsKey(device.getAddress())) {
+                        if (mNewList != null) {
+                            int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
+                            SearchResult searchResult = new SearchResult(device, rssi, null);
+                            mNewList.add(searchResult);
+                        }
                     }
                 } else if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
-                    int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
-                    SearchResult searchResult = new SearchResult(device, rssi, null);
-                    mBondedList.add(searchResult);
+                    if (mBondedList != null) {
+                        int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
+                        SearchResult searchResult = new SearchResult(device, rssi, null);
+                        mBondedList.add(searchResult);
+                    }
                 }
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 if (mOnSearchDeviceListener != null)
