@@ -26,8 +26,8 @@
             android:id="@+id/btn_connect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="连接设备" />
+            android:text="连接设备"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btn_send"
@@ -41,34 +41,44 @@
             android:layout_height="wrap_content"
             android:text="断开设备" />
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/parent_l1"
+        android:layout_below="@id/topl"
+        android:layout_marginTop="@dimen/dp_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
     　
 
     <RelativeLayout
         android:id="@+id/parent_r2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/topl"
+        android:layout_below="@id/parent_l1"
         android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/content"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/what"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/content"
-            android:textSize="10sp" />
 
         <ProgressBar
             android:id="@+id/progressbar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
             android:layout_marginBottom="5dp" />
+
+        <TextView
+            android:id="@+id/what"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/progressbar"
+            android:layout_marginTop="@dimen/dp_10"
+            android:textSize="10sp" />
+
+
     </RelativeLayout>
     　
 
@@ -76,7 +86,8 @@
         android:id="@+id/parent_r1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/topl"
+        android:layout_marginTop="@dimen/dp_4"
+        android:layout_below="@id/parent_l1"
         android:visibility="gone">
 
         <android.support.v7.widget.RecyclerView

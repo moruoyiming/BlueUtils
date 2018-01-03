@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.i("blue", "onConectSuccess");
                         Message message = handler.obtainMessage();
                         message.what = 0;
-                        message.obj = "连接成功 00:21:13:02:9B:F1";
+                        message.obj = "连接成功";
                         handler.sendMessage(message);
                         relativeLayout2.setVisibility(View.VISIBLE);
                         relativeLayout.setVisibility(View.GONE);

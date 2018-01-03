@@ -60,7 +60,8 @@ public class BlueManager {
     private boolean mNeed2unRegister;
     private boolean what = true;
     private int number = 0;
-    private HashMap<String,Object> paar=new HashMap<>();
+    private HashMap<String, Object> paar = new HashMap<>();
+
     private enum STATUS {
         DISCOVERING,
         CONNECTED,
@@ -166,14 +167,14 @@ public class BlueManager {
                 if (mOnSearchDeviceListener != null)
                     mOnSearchDeviceListener.onNewDeviceFound(device);
                 if (device.getBondState() == BluetoothDevice.BOND_NONE) {
-                    if(!paar.containsKey(device.getAddress())){
-                        int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI,Short.MIN_VALUE);
-                        SearchResult searchResult=new SearchResult(device,rssi,null);
+                    if (!paar.containsKey(device.getAddress())) {
+                        int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
+                        SearchResult searchResult = new SearchResult(device, rssi, null);
                         mNewList.add(searchResult);
                     }
                 } else if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
-                    int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI,Short.MIN_VALUE);
-                    SearchResult searchResult=new SearchResult(device,rssi,null);
+                    int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
+                    SearchResult searchResult = new SearchResult(device, rssi, null);
                     mBondedList.add(searchResult);
                 }
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
@@ -300,17 +301,25 @@ public class BlueManager {
         }
         mWritable = false;
         mReadable = false;
-        if (mSocket != null) {
-            try {
+        try {
+            if (mSocket != null) {
                 mSocket.close();
                 mSocket = null;
-            } catch (IOException e) {
-                mSocket = null;
             }
-        }
-        if (mExecutorService != null) {
-            mExecutorService.shutdown();
-            mExecutorService = null;
+            if (mInputStream != null) {
+                mInputStream.close();
+                mInputStream = null;
+            }
+            if (mOutputStream != null) {
+                mOutputStream.close();
+                mOutputStream = null;
+            }
+            if (mExecutorService != null) {
+                mExecutorService.shutdown();
+                mExecutorService = null;
+            }
+        } catch (Exception e) {
+            mSocket = null;
         }
         mNewList = null;
         mBondedList = null;
