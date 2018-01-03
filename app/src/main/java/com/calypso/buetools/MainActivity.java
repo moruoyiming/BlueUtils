@@ -246,18 +246,19 @@ public class MainActivity extends AppCompatActivity {
      * 为控件添加事件监听
      */
     public void initLisetener() {
-        findViewById(R.id.btn_search).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                bluemanage.searchDevices();
-            }
-        });
 
         mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 String mac = mDevices.get(position).getAddress();
                 bluemanage.connectDevice(mac);
+            }
+        });
+
+        findViewById(R.id.btn_search).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bluemanage.searchDevices();
             }
         });
 
@@ -269,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btn_send2).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btn_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 bluemanage.closeDevice();
