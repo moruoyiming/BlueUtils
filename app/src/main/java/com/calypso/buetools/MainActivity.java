@@ -37,23 +37,23 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
     private BlueManager bluemanage;
     private int progress = 0;
-    private TextView textView;
+    private TextView statusView;
     private TextView contextView;
     private ProgressBar progressBar;
     private StringBuilder stringBuilder;
     private List<SearchResult> mDevices;
     private DeviceListAdapter mAdapter;
     private RecyclerView recycleView;
-    private RelativeLayout devieslistparent;
-    private RelativeLayout devicedetails;
-    Handler handler = new Handler() {
+    private RelativeLayout devieslist;
+    private RelativeLayout deviesinfo;
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             String message = msg.obj.toString();
             switch (msg.what) {
                 case 0:
-                    textView.setText(message);
+                    statusView.setText(message);
                     break;
                 case 1:
                     stringBuilder.append(message + " \n");
@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                     progressBar.setProgress(progress);
                     break;
                 case 3:
-                    textView.setText("体检完成");
+                    statusView.setText("体检完成");
                     stringBuilder.delete(0, stringBuilder.length());
                     stringBuilder.append(message);
                     contextView.setText(stringBuilder.toString());
@@ -84,12 +84,12 @@ public class MainActivity extends AppCompatActivity {
         bluemanage = BlueManager.getInstance(getApplicationContext());
         stringBuilder = new StringBuilder();
         mDevices = new ArrayList<>();
-        devieslistparent = findViewById(R.id.parent_r1);
-        devicedetails = findViewById(R.id.parent_r2);
+        devieslist = findViewById(R.id.parent_r1);
+        deviesinfo = findViewById(R.id.parent_r2);
         progressBar = findViewById(R.id.progressbar);
         recycleView = findViewById(R.id.blue_rv);
-        contextView = findViewById(R.id.what);
-        textView = findViewById(R.id.content);
+        contextView = findViewById(R.id.context);
+        statusView = findViewById(R.id.status);
         recycleView.setAdapter(mAdapter);
         bluemanage.requestEnableBt();
         if (Build.VERSION.SDK_INT >= 23) {
@@ -126,13 +126,12 @@ public class MainActivity extends AppCompatActivity {
                         mDevices.clear();
                         mDevices.addAll(newList);
                         mAdapter.notifyDataSetChanged();
-                        devicedetails.setVisibility(View.GONE);
-                        devieslistparent.setVisibility(View.VISIBLE);
+                        deviesinfo.setVisibility(View.GONE);
+                        devieslist.setVisibility(View.VISIBLE);
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        e.printStackTrace();
                         sendMessage(0, "搜索失败");
                     }
                 });
@@ -166,8 +165,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onConectSuccess() {
                         sendMessage(0, "连接成功 MAC: " + mac);
-                        devicedetails.setVisibility(View.VISIBLE);
-                        devieslistparent.setVisibility(View.GONE);
+                        deviesinfo.setVisibility(View.VISIBLE);
+                        devieslist.setVisibility(View.GONE);
                         Log.i("blue", "onConectSuccess");
                     }
 
@@ -184,8 +183,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 bluemanage.closeDevice();
-                devieslistparent.setVisibility(View.VISIBLE);
-                devicedetails.setVisibility(View.GONE);
+                devieslist.setVisibility(View.VISIBLE);
+                deviesinfo.setVisibility(View.GONE);
             }
         });
         findViewById(R.id.btn_send).setOnClickListener(new View.OnClickListener() {
@@ -253,6 +252,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * @param type    0 修改状态  1 更新进度  2 体检完成  3 体检数据进度
+     * @param context
+     */
     public void sendMessage(int type, String context) {
         if (handler != null) {
             Message message = handler.obtainMessage();
