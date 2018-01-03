@@ -79,18 +79,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mDevices = new ArrayList<SearchResult>();
-        mAdapter = new DeviceListAdapter(R.layout.device_list_item, mDevices);
-        devieslistparent = findViewById(R.id.parent_r1);
-        devicedetails = findViewById(R.id.parent_r2);
-        recycleView = findViewById(R.id.blue_rv);
         recycleView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-        recycleView.setAdapter(mAdapter);
-        textView = (TextView) findViewById(R.id.content);
-        progressBar = (ProgressBar) findViewById(R.id.progressbar);
-        contextView = findViewById(R.id.what);
+        mAdapter = new DeviceListAdapter(R.layout.device_list_item, mDevices);
         bluemanage = BlueManager.getInstance(getApplicationContext());
         stringBuilder = new StringBuilder();
+        mDevices = new ArrayList<>();
+        devieslistparent = findViewById(R.id.parent_r1);
+        devicedetails = findViewById(R.id.parent_r2);
+        progressBar = findViewById(R.id.progressbar);
+        recycleView = findViewById(R.id.blue_rv);
+        contextView = findViewById(R.id.what);
+        textView = findViewById(R.id.content);
+        recycleView.setAdapter(mAdapter);
         bluemanage.requestEnableBt();
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(MainActivity.this,
@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onSearchCompleted(List<SearchResult> bondedList, List<SearchResult> newList) {
                         Log.d(TAG, "SearchCompleted: bondedList" + bondedList.toString());
                         Log.d(TAG, "SearchCompleted: newList" + newList.toString());
-                        sendMessage(0, "搜索完成");
+                        sendMessage(0, "搜索完成,点击列表进行连接！");
                         mDevices.clear();
                         mDevices.addAll(newList);
                         mAdapter.notifyDataSetChanged();
@@ -142,30 +142,30 @@ public class MainActivity extends AppCompatActivity {
         mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                String mac = mDevices.get(position).getAddress();
+                final String mac = mDevices.get(position).getAddress();
                 bluemanage.connectDevice(mac, new OnConnectListener() {
                     @Override
                     public void onConnectStart() {
-                        sendMessage(0, "连接设备");
+                        sendMessage(0, "开始连接");
                         Log.i("blue", "onConnectStart");
                     }
 
                     @Override
                     public void onConnectting() {
-                        sendMessage(0, "正在连接");
+                        sendMessage(0, "正在连接..");
                         Log.i("blue", "onConnectting");
                     }
 
                     @Override
                     public void onConnectFailed() {
-                        sendMessage(0, "连接失败");
+                        sendMessage(0, "连接失败！");
                         Log.i("blue", "onConnectFailed");
 
                     }
 
                     @Override
                     public void onConectSuccess() {
-                        sendMessage(0, "连接成功");
+                        sendMessage(0, "连接成功 MAC: " + mac);
                         devicedetails.setVisibility(View.VISIBLE);
                         devieslistparent.setVisibility(View.GONE);
                         Log.i("blue", "onConectSuccess");
@@ -173,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(Exception e) {
+                        sendMessage(0, "连接异常！");
                         Log.i("blue", "onError");
                     }
                 });
@@ -198,19 +199,19 @@ public class MainActivity extends AppCompatActivity {
                 bluemanage.sendMessage(item, true, new OnSendMessageListener() {
                     @Override
                     public void onSuccess(int status, String response) {
-                        sendMessage(0, "发送成功");
+                        sendMessage(0, "发送成功！");
                         Log.i("blue", "send message is success ! ");
                     }
 
                     @Override
                     public void onConnectionLost(Exception e) {
-                        sendMessage(0, "连接断开");
+                        sendMessage(0, "连接断开！");
                         Log.i("blue", "send message is onConnectionLost ! ");
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        sendMessage(0, "发送失败");
+                        sendMessage(0, "发送失败！");
                         Log.i("blue", "send message is onError ! ");
                     }
                 }, new OnReceiveMessageListener() {
@@ -228,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onDetectDataFinish() {
-                        sendMessage(2, "体检完成");
+                        sendMessage(2, "体检完成！");
                         Log.i("blue", "receive message is onDetectDataFinish");
                     }
 
