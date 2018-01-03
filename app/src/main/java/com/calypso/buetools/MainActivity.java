@@ -46,10 +46,9 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recycleView;
     private RelativeLayout devieslist;
     private RelativeLayout deviesinfo;
-
-    private OnSearchDeviceListener onSearchDeviceListener;
     private OnConnectListener onConnectListener;
     private OnSendMessageListener onSendMessageListener;
+    private OnSearchDeviceListener onSearchDeviceListener;
     private OnReceiveMessageListener onReceiveMessageListener;
     private Handler handler = new Handler() {
         @Override
