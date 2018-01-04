@@ -43,6 +43,7 @@ public class BlueManager {
     private Queue<MessageBean> mMessageBeanQueue = new LinkedBlockingQueue<>();
     private ExecutorService mExecutorService = Executors.newCachedThreadPool();
     private List<SearchResult> mBondedList = new ArrayList<>();
+    private HashMap<String, Object> paar = new HashMap<>();
     private List<SearchResult> mNewList = new ArrayList<>();
     private OnSearchDeviceListener mOnSearchDeviceListener;
     private OnConnectListener onConnectListener;
@@ -63,7 +64,7 @@ public class BlueManager {
     private boolean mNeed2unRegister;
     private boolean what = true;
     private int number = 0;
-    private HashMap<String, Object> paar = new HashMap<>();
+    private boolean readVersion = true;
 
     private enum STATUS {
         DISCOVERING,
@@ -111,6 +112,10 @@ public class BlueManager {
 
     public void setOnReceiveMessageListener(OnReceiveMessageListener onReceiveMessageListener) {
         this.onReceiveMessageListener = onReceiveMessageListener;
+    }
+
+    public void setReadVersion(boolean readVersion) {
+        this.readVersion = readVersion;
     }
 
     /**
@@ -422,27 +427,52 @@ public class BlueManager {
                     while (count == 0) {
                         count = stream.available();//输入流中的数据个数。
                     }
-                    if (count == 10 && what) {
-                        int num = stream.read(buffer);
-                        String progress = TypeConversion.bytesToHexStrings(buffer);
-                        Log.i("progress", progress);
-                        onReceiveMessageListener.onProgressUpdate(progress, 0);
-                    } else if (count >= 10) {
-                        Log.i("how", "  等于10?   " + (count == 10));
-                        what = false;
-                        int num = stream.read(buffer);
-                        String detect = TypeConversion.bytesToHexStrings(buffer);
-                        builder.append(detect);
-                        Log.i("detect", detect);
-                        if (detect.endsWith("04 ")) {
-                            number++;
-                        }
-                        if (number == 5) {
-                            onReceiveMessageListener.onDetectDataFinish();
-                            onReceiveMessageListener.onNewLine(builder.toString().trim());
-                            builder.delete(0, builder.length());
+                    if (readVersion) {
+                        if (count == 10) {
+                            int num = stream.read(buffer);
+                            String text2 = TypeConversion.bytesToHexStrings(buffer);
+                            builder.append(text2);
+                            Log.i("version", text2);
+                            if (text2.endsWith("04 ")) {
+                                String versionHex = TypeConversion.HexStringSplit(builder.toString());
+                                String[] version = TypeConversion.HexStringConversionVesion(versionHex);
+                                if (version.length >= 2) {
+                                    String sn = version[1];
+                                    Log.i("sn", sn);
+                                    onReceiveMessageListener.onNewLine("当前设备SN："+sn);
+                                }
+                            }
                         } else {
-                            onReceiveMessageListener.onDetectDataUpdate(detect);
+                            if (count >= 10) {
+                                int num = stream.read(buffer);
+                                String text2 = TypeConversion.bytesToHexStrings(buffer);
+                                builder.append(text2);
+                                Log.i("append", text2);
+                            }
+                        }
+                    } else {
+                        if (count == 10 && what) {
+                            int num = stream.read(buffer);
+                            String progress = TypeConversion.bytesToHexStrings(buffer);
+                            Log.i("progress", progress);
+                            onReceiveMessageListener.onProgressUpdate(progress, 0);
+                        } else if (count >= 10) {
+                            Log.i("how", "  等于10?   " + (count == 10));
+                            what = false;
+                            int num = stream.read(buffer);
+                            String detect = TypeConversion.bytesToHexStrings(buffer);
+                            builder.append(detect);
+                            Log.i("detect", detect);
+                            if (detect.endsWith("04 ")) {
+                                number++;
+                            }
+                            if (number == 5) {
+                                onReceiveMessageListener.onDetectDataFinish();
+                                onReceiveMessageListener.onNewLine(builder.toString().trim());
+                                builder.delete(0, builder.length());
+                            } else {
+                                onReceiveMessageListener.onDetectDataUpdate(detect);
+                            }
                         }
                     }
                 }
@@ -461,44 +491,41 @@ public class BlueManager {
 
         @Override
         public void run() {
-            try {
-                if (onSendMessageListener == null) {
-                    Log.i("blue", "send message listener is null !");
-                    return;
-                }
-                mWritable = true;
-                while (mCurrStatus != STATUS.CONNECTED && mWritable) ;
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(mOutputStream));
-                while (mWritable) {
-                    MessageBean item = mMessageBeanQueue.poll();
-                    if (item.mTYPE == MessageBean.TYPE.STRING) {
-                        try {
-                            writer.write(item.text);
-                            writer.newLine();
-                            writer.flush();
-                            Log.d(TAG, "send string message: " + item.text);
-                            onSendMessageListener.onSuccess(Constants.STATUS_OK, "send string message is success callback !");
-                        } catch (IOException e) {
-                            onSendMessageListener.onConnectionLost(e);
-                            mCurrStatus = STATUS.FREE;
-                            break;
-                        }
-                    } else if (item.mTYPE == MessageBean.TYPE.CHAR) {
-                        try {
-                            writer.write(item.data);
-                            writer.flush();
-                            Log.d(TAG, "send char message: " + item.data);
-                            onSendMessageListener.onSuccess(Constants.STATUS_OK, "send char message is success callback !");
-                        } catch (IOException e) {
-                            onSendMessageListener.onConnectionLost(e);
-                            mCurrStatus = STATUS.FREE;
-                            break;
-                        }
+            if (onSendMessageListener == null) {
+                Log.i("blue", "send message listener is null !");
+                return;
+            }
+            mWritable = true;
+            while (mCurrStatus != STATUS.CONNECTED && mWritable) ;
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(mOutputStream));
+            while (mWritable) {
+                MessageBean item = mMessageBeanQueue.poll();
+                if (MessageBean.TYPE.STRING == item.mTYPE) {
+                    try {
+                        writer.write(item.text);
+                        writer.newLine();
+                        writer.flush();
+                        Log.d(TAG, "send string message: " + item.text);
+                        onSendMessageListener.onSuccess(Constants.STATUS_OK, "send string message is success callback !");
+                    } catch (IOException e) {
+                        onSendMessageListener.onConnectionLost(e);
+                        mCurrStatus = STATUS.FREE;
+                        break;
+                    }
+                } else if (MessageBean.TYPE.CHAR == item.mTYPE) {
+                    try {
+                        writer.write(item.data);
+                        writer.flush();
+                        Log.d(TAG, "send char message: " + item.data);
+                        onSendMessageListener.onSuccess(Constants.STATUS_OK, "send char message is success callback !");
+                    } catch (IOException e) {
+                        onSendMessageListener.onConnectionLost(e);
+                        mCurrStatus = STATUS.FREE;
+                        break;
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+
         }
 
     }

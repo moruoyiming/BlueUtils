@@ -258,6 +258,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_search).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                bluemanage.setReadVersion(false);
                 bluemanage.searchDevices();
             }
         });
@@ -266,6 +267,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 MessageBean item = new MessageBean(TypeConversion.getDeviceVersion());
+                bluemanage.setReadVersion(true);
                 bluemanage.sendMessage(item, true);
             }
         });
@@ -282,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_send).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                bluemanage.setReadVersion(false);
                 progress = 0;
                 progressBar.setProgress(progress);
                 stringBuilder.delete(0, stringBuilder.length());
