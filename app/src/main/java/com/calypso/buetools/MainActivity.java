@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onDetectDataFinish() {
-                sendMessage(2, "体检完成！");
+                sendMessage(2, "接收完成！");
                 Log.i("blue", "receive message is onDetectDataFinish");
             }
 
