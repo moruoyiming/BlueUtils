@@ -383,7 +383,7 @@ public class BlueManager {
                 mInputStream = mSocket.getInputStream();
                 mOutputStream = mSocket.getOutputStream();
                 mCurrStatus = STATUS.CONNECTED;
-                onConnectListener.onConectSuccess();
+                onConnectListener.onConectSuccess(mac);
             } catch (Exception e) {
                 e.printStackTrace();
                 onConnectListener.onConnectFailed();
