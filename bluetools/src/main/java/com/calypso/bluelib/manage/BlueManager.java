@@ -439,7 +439,7 @@ public class BlueManager {
                                 if (version.length >= 2) {
                                     String sn = version[1];
                                     Log.i("sn", sn);
-                                    onReceiveMessageListener.onNewLine("当前设备SN："+sn);
+                                    onReceiveMessageListener.onNewLine("当前设备SN：" + sn);
                                 }
                             }
                         } else {
@@ -457,7 +457,6 @@ public class BlueManager {
                             Log.i("progress", progress);
                             onReceiveMessageListener.onProgressUpdate(progress, 0);
                         } else if (count >= 10) {
-                            Log.i("how", "  等于10?   " + (count == 10));
                             what = false;
                             int num = stream.read(buffer);
                             String detect = TypeConversion.bytesToHexStrings(buffer);
@@ -500,7 +499,7 @@ public class BlueManager {
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(mOutputStream));
             while (mWritable) {
                 MessageBean item = mMessageBeanQueue.poll();
-                if (MessageBean.TYPE.STRING == item.mTYPE) {
+                if (item.mTYPE != null && MessageBean.TYPE.STRING == item.mTYPE) {
                     try {
                         writer.write(item.text);
                         writer.newLine();
@@ -512,7 +511,7 @@ public class BlueManager {
                         mCurrStatus = STATUS.FREE;
                         break;
                     }
-                } else if (MessageBean.TYPE.CHAR == item.mTYPE) {
+                } else if (item.mTYPE != null && MessageBean.TYPE.CHAR == item.mTYPE) {
                     try {
                         writer.write(item.data);
                         writer.flush();
