@@ -3,8 +3,11 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/BlueUtils.iml" filepath="$PROJECT_DIR$/BlueUtils.iml" />
+      <module fileurl="file://D:\Zhikang\3.Project\github\BlueUtils\BlueUtils.iml" filepath="D:\Zhikang\3.Project\github\BlueUtils\BlueUtils.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://D:\Zhikang\3.Project\github\BlueUtils\app\app.iml" filepath="D:\Zhikang\3.Project\github\BlueUtils\app\app.iml" />
       <module fileurl="file://$PROJECT_DIR$/bluetools/bluetools.iml" filepath="$PROJECT_DIR$/bluetools/bluetools.iml" />
+      <module fileurl="file://D:\Zhikang\3.Project\github\BlueUtils\bluetools\bluetools.iml" filepath="D:\Zhikang\3.Project\github\BlueUtils\bluetools\bluetools.iml" />
     </modules>
   </component>
 </project>
