@@ -1,5 +1,6 @@
 package com.calypso.bluelib.manage;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -7,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -65,12 +67,33 @@ public class BlueManager {
     private boolean what = true;
     private int number = 0;
     private boolean readVersion = true;
+    private boolean supportBLE = false;
 
     private enum STATUS {
         DISCOVERING,
         CONNECTED,
         FREE
     }
+
+    private final BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
+
+        @Override
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            if(!paar.containsKey(device.getAddress())){
+                Log.i("ble", "device " + device.getAddress() + "   " + device.getName());
+                paar.put(device.getAddress(), "mac:" + device.getAddress());
+                SearchResult searchResult = new SearchResult(device, rssi, null);
+                mNewList.add(searchResult);
+            }else{
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                    if (mOnSearchDeviceListener != null)
+                        mOnSearchDeviceListener.onSearchCompleted(mBondedList, mNewList);
+                }
+            }
+        }
+
+    };
 
     /**
      * Obtains the BtHelperClient getInstance the given context.
@@ -128,6 +151,28 @@ public class BlueManager {
         }
         if (!mBluetoothAdapter.isEnabled())
             mBluetoothAdapter.enable();
+    }
+
+    /**
+     * discovery the ble devices.
+     */
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @SuppressWarnings("deprecation")
+    public void searchBLEDevices() {
+        try {
+            checkNotNull(mOnSearchDeviceListener);
+            if (mBondedList == null) mBondedList = new ArrayList<>();
+            if (mNewList == null) mNewList = new ArrayList<>();
+            if (mBluetoothAdapter == null) {
+                mOnSearchDeviceListener.onError(new NullPointerException(DEVICE_HAS_NOT_BLUETOOTH_MODULE));
+                return;
+            }
+            if (mBluetoothAdapter.isDiscovering())
+                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            mBluetoothAdapter.startLeScan(mLeScanCallback);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -197,6 +242,8 @@ public class BlueManager {
                 } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                     if (mOnSearchDeviceListener != null)
                         mOnSearchDeviceListener.onSearchCompleted(mBondedList, mNewList);
+
+                    searchBLEDevices();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
