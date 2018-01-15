@@ -29,14 +29,33 @@ https://www.jianshu.com/p/fc46c154eb77 (经典蓝牙)  https://www.jianshu.com/p
   项目需求，现在将这个项目做了分包及优化。然后在这分享自己的一些踩坑心得。
 
 
+# 集成
 
-  在页面首先初始化一个BlueManager，安卓6.0版本以上需要动态申请权限。
+    # 第一步：声明所需要的权限
 
-  private BlueManager bluemanage;
+    <uses-permission android:name="android.permission.BLUETOOTH"/> 使用蓝牙所需要的权限
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/> 使用扫描和设置蓝牙的权限（申明这一个权限必须申明上面一个权限）
 
-  bluemanage = BlueManager.getInstance(getApplicationContext());
+    在Android5.0之前，是默认申请GPS硬件功能的。而在Android 5.0 之后，需要在manifest 中申明GPS硬件模块功能的使用。
 
-  然后为这个蓝牙管理器设置监听(OnSearchDeviceListener，OnConnectListener，OnSendMessageListener，OnReceiveMessageListener)
+        <!-- Needed only if your app targets Android 5.0 (API level 21) or higher. -->
+        <uses-feature android:name="android.hardware.location.gps" />
+
+    在 Android 6.0 及以上，还需要打开位置权限。如果应用没有位置权限，蓝牙扫描功能不能使用（其它蓝牙操作例如连接蓝牙设备和写入数据不受影响）。
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    # 第二步：初始化实例
+
+    在页面首先初始化一个BlueManager。
+
+    private BlueManager bluemanage;
+
+    bluemanage = BlueManager.getInstance(getApplicationContext());
+
+    # 第三步：设置实例监听
+
+   然后为这个蓝牙管理器设置监听(OnSearchDeviceListener，OnConnectListener，OnSendMessageListener，OnReceiveMessageListener)
 
          /**
              * 初始化蓝牙管理，设置监听
@@ -50,11 +69,13 @@ https://www.jianshu.com/p/fc46c154eb77 (经典蓝牙)  https://www.jianshu.com/p
                 bluemanage.requestEnableBt();
             }
 
-  通过调用 bluemanage.requestEnableBt()开启蓝牙，
+   # 第四步：开启蓝牙搜索蓝牙设备
 
-  调用searchDevices 获取蓝牙设备。在做蓝牙操作前，要确保各个监听器已经设置好。
+      通过调用 bluemanage.requestEnableBt()开启蓝牙，
 
-  搜索监听如下：
+      调用searchDevices 获取蓝牙设备。在做蓝牙操作前，要确保各个监听器已经设置好。
+
+      搜索监听如下：
 
             onSearchDeviceListener =new OnSearchDeviceListener() {
                       @Override
@@ -155,9 +176,11 @@ https://www.jianshu.com/p/fc46c154eb77 (经典蓝牙)  https://www.jianshu.com/p
             }
         }
 
-   在连接的线程run方法中，通过调用mBluetoothAdapter.getRemoteDevice 获取远程蓝牙信息，通过
-   createInsecureRfcommSocketToServiceRecord获得一个与远程蓝牙的socket连接。通过这个socket连接获取输入
-   流和输出流进行数据的读写。
+   # 第五步：连接蓝牙设备
+
+       在连接的线程run方法中，通过调用mBluetoothAdapter.getRemoteDevice 获取远程蓝牙信息，通过
+       createInsecureRfcommSocketToServiceRecord获得一个与远程蓝牙的socket连接。通过这个socket连接获取输入
+       流和输出流进行数据的读写。
 
              if (onConnectListener == null) {
                    Log.i("blue", "the connectListener is null !");
@@ -175,21 +198,27 @@ https://www.jianshu.com/p/fc46c154eb77 (经典蓝牙)  https://www.jianshu.com/p
                mCurrStatus = STATUS.CONNECTED;
                onConnectListener.onConectSuccess();
 
-   当设备连接成功之后，就可以给蓝牙设备发送消息了。 通过调用bluemanage.sendMessage(MessageBean mesaage，
-   needResponse)方法，在bluemange里会开起一个WriteRunnable写线程和一个ReadRunnable去获取输入流和输出流
-   的实时数据，读线程只会在第一次发消息时初始化一次。以后都是用这个线程去读从蓝牙返回的数据。写数据的线程
-   在每次调用的时候都会从新初始化。(待优化)
+   # 第六步：向蓝牙设备发送消息
+
+       当设备连接成功之后，就可以给蓝牙设备发送消息了。 通过调用bluemanage.sendMessage(MessageBean mesaage，
+       needResponse)方法，在bluemange里会开起一个WriteRunnable写线程和一个ReadRunnable去获取输入流和输出流
+       的实时数据，读线程只会在第一次发消息时初始化一次。以后都是用这个线程去读从蓝牙返回的数据。写数据的线程
+       在每次调用的时候都会从新初始化。(待优化)
 
         在WriteRunnable中的润写数据
           writer.write(item.text);
           writer.newLine();
           writer.flush();
 
-   在WriteRunnable 的run方法中通过mOutputStream流将数据传送给蓝牙设备,当蓝牙接受到消息之后会和串口进行
-   通信，具体的通信协议是根据各个厂商自己协商的。当串口接受数据执行操作，获取数据然后在返回数据给蓝牙，蓝
-   牙也就有返回数据，在ReadRunnable中从mInputStream里不断的读取数据。这里有一个问题，就是有的时候从蓝牙
-   口读取的数据并不是一个完整的数据，这里是一个坑。首先你需要知道你需要什么数据，什么格式，数据的长度。这
-   里我们的数据的格式类似是一帧一帧，而且我们的帧长度固定大小是10。那么我们就可以在这里做一些你想做的事了。
+       在WriteRunnable 的run方法中通过mOutputStream流将数据传送给蓝牙设备,当蓝牙接受到消息之后会和串口进行
+       通信，具体的通信协议是根据各个厂商自己协商的。当串口接受数据执行操作，获取数据然后在返回数据给蓝牙，蓝
+       牙也就有返回数据。
+
+   # 第七步：从蓝牙设备读取消息
+
+       在ReadRunnable中从mInputStream里不断的读取数据。这里有一个问题，就是有的时候从蓝牙
+       口读取的数据并不是一个完整的数据，这里是一个坑。首先你需要知道你需要什么数据，什么格式，数据的长度。这
+       里我们的数据的格式类似是一帧一帧，而且我们的帧长度固定大小是10。那么我们就可以在这里做一些你想做的事了。
 
  # 坑 有时候从蓝牙socket 中读取的数据不完整
     读数据不完整，是因为我们开启线程之后会一直读，有时候蓝牙并没有返回数据，或者没有返回完整数据，这个时候
