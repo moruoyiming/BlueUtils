@@ -31,7 +31,7 @@ https://www.jianshu.com/p/fc46c154eb77 (经典蓝牙)  https://www.jianshu.com/p
 
 # 集成
 
-    # 第一步：声明所需要的权限
+   # 第一步：声明所需要的权限
 
     <uses-permission android:name="android.permission.BLUETOOTH"/> 使用蓝牙所需要的权限
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/> 使用扫描和设置蓝牙的权限（申明这一个权限必须申明上面一个权限）
@@ -45,7 +45,7 @@ https://www.jianshu.com/p/fc46c154eb77 (经典蓝牙)  https://www.jianshu.com/p
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
-    # 第二步：初始化实例
+   # 第二步：初始化实例
 
     在页面首先初始化一个BlueManager。
 
@@ -53,7 +53,7 @@ https://www.jianshu.com/p/fc46c154eb77 (经典蓝牙)  https://www.jianshu.com/p
 
     bluemanage = BlueManager.getInstance(getApplicationContext());
 
-    # 第三步：设置实例监听
+   # 第三步：设置实例监听
 
    然后为这个蓝牙管理器设置监听(OnSearchDeviceListener，OnConnectListener，OnSendMessageListener，OnReceiveMessageListener)
 
