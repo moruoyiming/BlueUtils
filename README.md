@@ -29,8 +29,6 @@ https://www.jianshu.com/p/fc46c154eb77 (经典蓝牙)  https://www.jianshu.com/p
   项目需求，现在将这个项目做了分包及优化。然后在这分享自己的一些踩坑心得。
 
 
-# 集成
-
    # 第一步：声明所需要的权限
 
     <uses-permission android:name="android.permission.BLUETOOTH"/> 使用蓝牙所需要的权限
