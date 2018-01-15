@@ -139,8 +139,9 @@ https://www.jianshu.com/p/fc46c154eb77 (经典蓝牙)  https://www.jianshu.com/p
             }
         }
 
-   搜索的大致流程就是这样子。接下来说下配对连接流程。当调用connectDevice(mac)方法时，因为连接蓝牙是一个
-   很耗时的操作，所以需要开启一个线程去连接蓝牙。
+  # 第五步：连接蓝牙设备
+
+   当调用connectDevice(mac)方法时，因为连接蓝牙是一很耗时的操作，所以需要开启一个线程去连接蓝牙。
 
         /**
          * 连接bluetooth
@@ -173,8 +174,6 @@ https://www.jianshu.com/p/fc46c154eb77 (经典蓝牙)  https://www.jianshu.com/p
                 e.printStackTrace();
             }
         }
-
-   # 第五步：连接蓝牙设备
 
        在连接的线程run方法中，通过调用mBluetoothAdapter.getRemoteDevice 获取远程蓝牙信息，通过
        createInsecureRfcommSocketToServiceRecord获得一个与远程蓝牙的socket连接。通过这个socket连接获取输入
