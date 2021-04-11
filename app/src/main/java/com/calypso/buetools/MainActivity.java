@@ -22,8 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.calypso.bluelib.bean.MessageBean;
 import com.calypso.bluelib.bean.SearchResult;
-import com.calypso.bluelib.database.Student;
-import com.calypso.bluelib.database.StudentRepository;
 import com.calypso.bluelib.listener.OnConnectListener;
 import com.calypso.bluelib.listener.OnReceiveMessageListener;
 import com.calypso.bluelib.listener.OnSearchDeviceListener;
@@ -53,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
     private OnSendMessageListener onSendMessageListener;
     private OnSearchDeviceListener onSearchDeviceListener;
     private OnReceiveMessageListener onReceiveMessageListener;
-    private StudentRepository studentRepository;
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -92,13 +89,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        studentRepository = new StudentRepository(MainActivity.this);
-        List<Student> students =  studentRepository.getAll();
-        Log.i("onCreate before ",students.toString());
-        Student stuent = new Student("hello","123",123);
-        studentRepository.insert(stuent);
-        students =  studentRepository.getAll();
-        Log.i("onCreate after",students.toString());
         mDevices = new ArrayList<>();
         mAdapter = new DeviceListAdapter(R.layout.device_list_item, mDevices);
         stringBuilder = new StringBuilder();
