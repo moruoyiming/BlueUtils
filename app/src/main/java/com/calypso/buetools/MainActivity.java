@@ -1,6 +1,7 @@
 package com.calypso.buetools;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -100,16 +101,7 @@ public class MainActivity extends AppCompatActivity {
         contextView = findViewById(R.id.context);
         statusView = findViewById(R.id.status);
         recycleView.setAdapter(mAdapter);
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (ContextCompat.checkSelfPermission(MainActivity.this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        Manifest.permission.READ_CONTACTS)) {
-                    Toast.makeText(MainActivity.this, "shouldShowRequestPermissionRationale", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
+        getPermission();
         initBlueManager();
         initLisetener();
 
@@ -309,19 +301,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == 2) {
-            if (permissions[0].equals(Manifest.permission.ACCESS_COARSE_LOCATION) && grantResults[0]
-                    == PackageManager.PERMISSION_GRANTED) {
-            } else {
-                if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.
-                        permission.ACCESS_COARSE_LOCATION)) {
-                    return;
-                }
-            }
-        }
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -335,4 +314,62 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+
+    private final int ACCESS_LOCATION=1;
+    @SuppressLint("WrongConstant")
+    private void getPermission() {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+            int permissionCheck = 0;
+            permissionCheck = this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+            permissionCheck += this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                //未获得权限
+                this.requestPermissions( // 请求授权
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION},
+                        ACCESS_LOCATION);// 自定义常量,任意整型
+            }
+        }
+    }
+
+    /**
+     * 请求权限的结果回调。每次调用 requestpermissions（string[]，int）时都会调用此方法。
+     * @param requestCode 传入的请求代码
+     * @param permissions 传入permissions的要求
+     * @param grantResults 相应权限的授予结果:PERMISSION_GRANTED 或 PERMISSION_DENIED
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case ACCESS_LOCATION:
+                if (hasAllPermissionGranted(grantResults)) {
+                    Log.i(TAG, "onRequestPermissionsResult: 用户允许权限");
+                } else {
+                    Log.i(TAG, "onRequestPermissionsResult: 拒绝搜索设备权限");
+                }
+                break;
+        }
+        if (requestCode == 2) {
+            if (permissions[0].equals(Manifest.permission.ACCESS_COARSE_LOCATION) && grantResults[0]
+                    == PackageManager.PERMISSION_GRANTED) {
+            } else {
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.
+                        permission.ACCESS_COARSE_LOCATION)) {
+                    return;
+                }
+            }
+        }
+    }
+
+    private boolean hasAllPermissionGranted(int[] grantResults) {
+        for (int grantResult : grantResults) {
+            if (grantResult == PackageManager.PERMISSION_DENIED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

@@ -79,12 +79,12 @@ public class BlueManager {
 
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            if(!paar.containsKey(device.getAddress())){
+            if (!paar.containsKey(device.getAddress())) {
                 Log.i("ble", "device " + device.getAddress() + "   " + device.getName());
                 paar.put(device.getAddress(), "mac:" + device.getAddress());
                 SearchResult searchResult = new SearchResult(device, rssi, null);
                 mNewList.add(searchResult);
-            }else{
+            } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
                     if (mOnSearchDeviceListener != null)
@@ -238,6 +238,9 @@ public class BlueManager {
                             SearchResult searchResult = new SearchResult(device, rssi, null);
                             mBondedList.add(searchResult);
                         }
+                    }
+                    if (mOnSearchDeviceListener != null) {
+                        mOnSearchDeviceListener.onNewDeviceFound(device);
                     }
                 } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                     if (mOnSearchDeviceListener != null)
